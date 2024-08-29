@@ -14,3 +14,9 @@ variable "vpc_parameters" {
   description = "VPC parameteres to configure VPC module"
   default     = {}
 }
+
+variable "vpc_defaults" {
+  type        = any
+  description = "VPC defaults parameteres to configure VPC module"
+  default     = {}
+}
