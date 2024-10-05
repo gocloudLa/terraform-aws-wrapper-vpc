@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0](https://gitlab.com/espinlabs/gocloud/infrastructure-engine/global-modules/base/modules/aws/wrapper_vpc/compare/v1.0.0...v1.1.0) (2024-10-05)
+
+### Features
+
+* **doc:** add variables table ([de1309b](https://gitlab.com/espinlabs/gocloud/infrastructure-engine/global-modules/base/modules/aws/wrapper_vpc/commit/de1309bbbb01441a658de65e2ebb048247cd4a70))
+* **main:** remote module upgrade ([8d93c12](https://gitlab.com/espinlabs/gocloud/infrastructure-engine/global-modules/base/modules/aws/wrapper_vpc/commit/8d93c124639f7f8ec5c5d6e8d9f153e89d7972e2))
+
+### Bug Fixes
+
+* **doc:** correct variable table syntax ([41459c2](https://gitlab.com/espinlabs/gocloud/infrastructure-engine/global-modules/base/modules/aws/wrapper_vpc/commit/41459c27ea9fef2d6f26784e5833aa026f89328c))
+
 ## 1.0.0 (2024-09-23)
 
 ### Features
