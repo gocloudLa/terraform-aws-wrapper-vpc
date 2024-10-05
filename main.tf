@@ -1,6 +1,6 @@
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "4.0.2"
+  version = "5.13.0"
 
   name = local.common_name
   cidr = lookup(var.vpc_parameters, "vpc_cidr", "")
@@ -115,7 +115,7 @@ module "vpc" {
 
 module "vpc-endpoint" {
   source  = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
-  version = "3.18.1"
+  version = "5.13.0"
 
   vpc_id             = module.vpc.vpc_id
   security_group_ids = [data.aws_security_group.default.id]
