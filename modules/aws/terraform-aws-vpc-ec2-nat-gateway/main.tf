@@ -10,6 +10,8 @@ module "ec2_instance" {
   subnet_id              = var.subnet_id
   vpc_security_group_ids = [module.security_group[0].security_group_id]
 
+  ignore_ami_changes = true
+
   associate_public_ip_address = true
   disable_api_stop            = false
 
