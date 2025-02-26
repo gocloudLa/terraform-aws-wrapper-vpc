@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.0](https://gitlab.com/espinlabs/gocloud/infrastructure-engine/global-modules/base/modules/aws/wrapper_vpc/compare/v1.1.0...v2.0.0) (2025-02-26)
+
+### ⚠ BREAKING CHANGES
+
+* **module:** upgrade ec2 base image & ignore changes
+
+### Features
+
+* **module:** upgrade ec2 base image & ignore changes ([950d7dc](https://gitlab.com/espinlabs/gocloud/infrastructure-engine/global-modules/base/modules/aws/wrapper_vpc/commit/950d7dc32aa193da7511575372d1a3ddd7048dee))
+
 ## [1.1.0](https://gitlab.com/espinlabs/gocloud/infrastructure-engine/global-modules/base/modules/aws/wrapper_vpc/compare/v1.0.0...v1.1.0) (2024-10-05)
 
 ### Features
