@@ -6,7 +6,7 @@ resource "aws_customer_gateway" "this" {
   bgp_asn          = var.customer_gateway_bgp_asn <= 2147483647 ? var.customer_gateway_bgp_asn : null
   bgp_asn_extended = var.customer_gateway_bgp_asn > 2147483647 ? var.customer_gateway_bgp_asn : null
   ip_address       = var.customer_gateway_ip_address
-  certificate_arn  = var.customer_gateway_certificate_arn 
+  certificate_arn  = var.customer_gateway_certificate_arn
   type             = "ipsec.1"
   tags             = var.tags
 

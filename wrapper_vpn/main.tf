@@ -1,26 +1,26 @@
 ## VPN
 locals {
-  
+
   create_vpn_connection_tmp = [
     for vpn_key, vpn_config in var.vpn_parameters :
     {
       "${vpn_key}" = {
-        vpc_id                         = try(var.vpc_parameter.vpcs[vpn_config.vpc].vpc_id ,vpn_config.vpc_id, null)
-        vpn_gateway_amazon_side_asn    = try(vpn_config.virtual_private_gateway.amazon_side_asn, 64512)
-        
+        vpc_id                      = try(var.vpc_parameter.vpcs[vpn_config.vpc].vpc_id, vpn_config.vpc_id, null)
+        vpn_gateway_amazon_side_asn = try(vpn_config.virtual_private_gateway.amazon_side_asn, 64512)
+
         transit_gateway_id             = try(var.tgw_parameter.transit_gateway[vpn_config.tgw].tgw_id, vpn_config.transit_gateway_id, null)
         transit_gateway_route_table_id = try(vpn_config.transit_gateway_route_table_id, null)
         transit_gateway_routes         = try(vpn_config.transit_gateway_routes, null)
         route_table_ids                = try(data.aws_route_tables.route_tables[vpn_key].ids, null)
-    
+
         customer_gateway_ip_address       = try(vpn_config.customer_gateway.ip_address, null)
         customer_gateway_device_name      = try(vpn_config.customer_gateway.device_name, null)
         customer_gateway_bgp_asn          = try(vpn_config.customer_gateway.bgp_asn, 65000)
         customer_gateway_bgp_asn_extended = try(vpn_config.customer_gateway.bgp_asn_extended, null)
         customer_gateway_certificate_arn  = try(vpn_config.customer_gateway.certificate_arn, null)
-        
+
         ## VPN Connection
-        create_vpn_connection                               = try(vpn_config.create_vpn_connection, true) 
+        create_vpn_connection                               = try(vpn_config.create_vpn_connection, true)
         vpn_connection_static_routes_only                   = try(vpn_config.vpn_connection.static_routes_only, false)
         vpn_connection_static_routes_destinations           = try(vpn_config.vpn_connection.static_routes_destinations, [])
         vpn_connection_local_ipv4_network_cidr              = try(vpn_config.vpn_connection.local_ipv4_network_cidr, "0.0.0.0/0")
@@ -57,9 +57,9 @@ locals {
         vpn_connection_tunnel2_cloudwatch_log_enabled       = try(vpn_config.vpn_connection.tunnel2_cloudwatch_log_enabled, false)
         vpn_connection_tunnel2_cloudwatch_log_output_format = try(vpn_config.vpn_connection.tunnel2_cloudwatch_log_output_format, "json")
 
-        tags                    = merge(local.common_tags, { Name = "${local.common_name}-${vpn_key}" })
+        tags = merge(local.common_tags, { Name = "${local.common_name}-${vpn_key}" })
       }
-    } if ((length(try(vpn_config, {})) > 0))
+    } if((length(try(vpn_config, {})) > 0))
   ]
   create_vpn_connection = merge(flatten(local.create_vpn_connection_tmp)...)
 }

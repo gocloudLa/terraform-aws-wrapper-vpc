@@ -9,7 +9,7 @@ data "aws_availability_zones" "available" {
 }
 
 data "aws_route_tables" "route_tables" {
-  for_each =  var.vpn_parameters 
+  for_each = var.vpn_parameters
 
   filter {
     name   = "tag:Name"
