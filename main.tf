@@ -13,7 +13,7 @@ module "wrapper_tgw" {
 
   metadata = var.metadata
 
-  tgw_parameters = var.vpc_parameters.tgw
+  tgw_parameters = try(var.vpc_parameters.tgw, {})
   tgw_defaults   = var.vpc_defaults.tgw
 
   vpc_parameter = module.wrapper_vpc
@@ -24,7 +24,7 @@ module "wrapper_vpn" {
 
   metadata = var.metadata
 
-  vpn_parameters = var.vpc_parameter.vpn
+  vpn_parameters = try(var.vpc_parameters.vpn, {})
   vpn_defaults   = var.vpc_defaults.vpn
 
   vpc_parameter = module.wrapper_vpc
