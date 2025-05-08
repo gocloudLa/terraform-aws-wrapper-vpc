@@ -44,7 +44,7 @@ locals {
             vpc_key                 = vpc_key,
             enable_ipv6             = lookup(vpc_config, "enable_ipv6", false)
             create_egress_only_igw  = lookup(internet_gateway_values, "create_egress_only_igw", false)
-            tags                    = merge(local.common_tags, { Name = "${local.common_name}-${vpc_key}-${internet_gateway_name}" })
+            tags                    = merge(lookup(internet_gateway_values, "tags",local.common_tags), { Name = "${local.common_name}-${vpc_key}-${internet_gateway_name}" })
         })
       } if((length(lookup(vpc_config, "internet_gateway", {})) > 0))
     ]
@@ -76,7 +76,7 @@ locals {
           create_network_acl = lookup(network_acl_values, "create_network_acl", true)
           vpc_key            = vpc_key
           rules              = lookup(network_acl_values, "rules", {})
-          tags               = merge(local.common_tags, { Name = "${local.common_name}-${vpc_key}-${network_acl_name}" })
+          tags               = merge(lookup(network_acl_values, "tags",local.common_tags),  { Name = "${local.common_name}-${vpc_key}-${network_acl_name}" })
         }
       } if((length(lookup(vpc_config, "network_acl", {})) > 0))
     ]
@@ -213,7 +213,7 @@ locals {
           kind               = lookup(nat_gateway_values, "kind", "aws")
           subnet             = lookup(nat_gateway_values, "subnet", null)
           nat_parameters     = lookup(nat_gateway_values, "nat_parameters", { connectivity_type = "public" })
-          tags               = merge(lookup(nat_gateway_values, "tags", local.common_tags), { Name = "${local.common_name}-${vpc_key}-${nat_gateway_name}" })
+          tags               = merge(lookup(nat_gateway_values, "tags",local.common_tags), { Name = "${local.common_name}-${vpc_key}-${nat_gateway_name}" })
         }
       } if((length(lookup(vpc_config, "nat_gateway", {})) > 0))
     ]

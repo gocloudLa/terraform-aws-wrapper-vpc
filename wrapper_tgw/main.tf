@@ -16,8 +16,8 @@ locals {
           ipv6_support                                    = lookup(vpc_attachments_values, "ipv6_support", false)
           security_group_referencing_support              = lookup(vpc_attachments_values, "security_group_referencing_support", null)
           transit_gateway_default_route_table_association = lookup(vpc_attachments_values, "transit_gateway_default_route_table_association", true)
-          transit_gateway_default_route_table_propagation = lookup(vpc_attachments_values, "transit_gateway_default_route_table_propagation", true)
-          tags                                            = merge(local.common_tags, { Name = "${local.common_name}-${tgw_key}-${vpc_attachments_name}" })
+          transit_gateway_default_route_table_propagation = lookup(vpc_attachments_values, "transit_gate way_default_route_table_propagation", true)
+          tags                                            = merge(lookup(vpc_attachments_values, "tags",local.common_tags), { Name = "${local.common_name}-${tgw_key}-${vpc_attachments_name}" })
         }
       } if((length(lookup(tgw_config, "vpc_attachments", {})) > 0))
     ]
@@ -54,7 +54,7 @@ module "wrapper_tgw" {
   transit_gateway_cidr_blocks    = lookup(each.value, "transit_gateway_cidr_blocks", [])
   transit_gateway_route_table_id = lookup(each.value, "transit_gateway_route_table_id", null)
 
-  tags = local.common_tags
+  tags = merge(lookup(each.value, "tags",local.common_tags))
 }
 
 locals {
