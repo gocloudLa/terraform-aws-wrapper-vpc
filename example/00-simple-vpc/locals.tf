@@ -2,15 +2,15 @@ locals {
 
   metadata = {
     aws_region  = "us-east-1"
-    environment = "Laboratory"
+    environment = "production"
 
-    public_domain  = "gocloud.cloud"
-    private_domain = "gocloud"
+    public_domain  = "democorp.cloud"
+    private_domain = "democorp"
 
     key = {
-      company = "gcl"
+      company = "dmc"
       region  = "use1"
-      env     = "lab"
+      env     = "prd"
     }
   }
 

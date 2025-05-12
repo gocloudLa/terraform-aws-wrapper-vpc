@@ -5,48 +5,46 @@ module "wrapper_base" {
 
   vpc_parameters = {
     vpc = {
-      "test3" = {
+      "stg" = {
         # VPC Parameters
-        vpc_cidr = "10.17.0.0/16" #Required
+        vpc_cidr           = "10.17.0.0/16" #Required
+        custom_common_name = ""
+
         flow_logs = {
           "00" = {
+            ## Defines wich resources the flow logs will be using
+            enable_flow_log = false
           }
         }
         internet_gateway = {
-          "igw" = {}
+          "igw" = {
+          }
         }
         nat_gateway = {
           "natgw" = {
-            subnet = "public-01"
-            kind   = "ec2" # OPCION EC2
+            subnet = "public-${data.aws_region.current.name}a"
+            kind   = "aws" # OPCION AWS
           }
         }
         route_table = {
-          "default" = {
-            # Modifies aws_default_route_table
-          }
           "private" = {
             routes = {
             }
             default_route = {
-              network_interface = "natgw"
+              nat_gateway = "natgw"
             }
           }
           "public" = {
-            routes = {}
+            routes = {
+            }
             default_route = {
               gateway = "igw"
             }
           }
         }
         network_acl = {
-          "default" = {
-            # Modifies aws_default_network_acl
-          }
           "private" = {
-            rules = {
-
-            }
+            rules = {}
           }
           "public" = {
             rules = {}
@@ -54,29 +52,41 @@ module "wrapper_base" {
         }
         subnets = {
           "private" = {
-            "01" = {
-              cidr_block  = "10.17.1.0/24"
+            "${data.aws_region.current.name}a" = {
+              cidr_block  = cidrsubnet("10.17.0.0/16", 4, 0)
               az          = "a"
               route_table = "private"
               network_acl = "private"
             }
-            "02" = {
-              cidr_block  = "10.17.2.0/24"
+            "${data.aws_region.current.name}b" = {
+              cidr_block  = cidrsubnet("10.17.0.0/16", 4, 1)
               az          = "b"
+              route_table = "private"
+              network_acl = "private"
+            }
+            "${data.aws_region.current.name}c" = {
+              cidr_block  = cidrsubnet("10.17.0.0/16", 4, 2)
+              az          = "c"
               route_table = "private"
               network_acl = "private"
             }
           }
           "public" = {
-            "01" = {
-              cidr_block  = "10.17.11.0/24"
+            "${data.aws_region.current.name}a" = {
+              cidr_block  = cidrsubnet("10.17.0.0/16", 4, 3)
               az          = "a"
               route_table = "public"
               network_acl = "public"
             }
-            "02" = {
-              cidr_block  = "10.17.12.0/24"
+            "${data.aws_region.current.name}b" = {
+              cidr_block  = cidrsubnet("10.17.0.0/16", 4, 4)
               az          = "b"
+              route_table = "public"
+              network_acl = "public"
+            }
+            "${data.aws_region.current.name}c" = {
+              cidr_block  = cidrsubnet("10.17.0.0/16", 4, 5)
+              az          = "c"
               route_table = "public"
               network_acl = "public"
             }
@@ -84,7 +94,6 @@ module "wrapper_base" {
         }
       }
     }
-
     tgw = {
       "tgw-01" = {
         ## If TGW is already created, disable creation to only create the VPC attachment from a separe account/vpc 
@@ -96,9 +105,8 @@ module "wrapper_base" {
         # ram_resource_share_arn = "arn:aws:ram:us-east-1:xxxxxxxx:resource-share/a42896eb-ae42-4556-be24-8427a44552f2" //RAM reference to send request invitation to gain acces to TGW resource
 
         vpc_attachments = {
-          "test3" = {
-            subnet_ids = ["private-01", "private-02"] // Only 1 Subnet per AZ
-
+          "stg" = {
+            subnet_ids = ["private-${data.aws_region.current.name}a", "private-${data.aws_region.current.name}b", "private-${data.aws_region.current.name}c"] // Only 1 Subnet per AZ
             tgw_routes = [
               {
                 destination_cidr_block = "10.17.0.0/16"
@@ -110,7 +118,6 @@ module "wrapper_base" {
               }
           ] }
         }
-
         vpc_routes = {
           "test3" = {
             "private" = {

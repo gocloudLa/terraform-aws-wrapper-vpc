@@ -19,7 +19,7 @@ variable "vpc_parameters" {
 variable "vpc_defaults" {
   type        = any
   description = "vpc defaults parameteres to configure vpc module"
-  default     = {
+  default = {
     vpc = {}
     tgw = {}
     vpn = {}
