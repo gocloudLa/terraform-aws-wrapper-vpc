@@ -27,7 +27,7 @@ module "vpc" {
   dhcp_options_netbios_name_servers = lookup(each.value, "dhcp_options_netbios_name_servers", [])
   dhcp_options_netbios_node_type    = lookup(each.value, "dhcp_options_netbios_node_type", "")
 
-  tags = merge(lookup(each.value, "tags", local.common_tags), { Name = "${local.common_name}-${each.key}" })
+  tags = merge(lookup(each.value, "tags", local.common_tags), { Name = "${local.custom_common_name[each.key]}" })
 
 }
 
@@ -44,7 +44,7 @@ locals {
             vpc_key                 = vpc_key,
             enable_ipv6             = lookup(vpc_config, "enable_ipv6", false)
             create_egress_only_igw  = lookup(internet_gateway_values, "create_egress_only_igw", false)
-            tags                    = merge(lookup(internet_gateway_values, "tags", local.common_tags), { Name = "${local.common_name}-${vpc_key}-${internet_gateway_name}" })
+            tags                    = merge(lookup(internet_gateway_values, "tags", local.common_tags), { Name = "${local.custom_common_name[vpc_key]}-${internet_gateway_name}" })
         })
       } if((length(lookup(vpc_config, "internet_gateway", {})) > 0))
     ]
@@ -76,7 +76,7 @@ locals {
           create_network_acl = lookup(network_acl_values, "create_network_acl", true)
           vpc_key            = vpc_key
           rules              = lookup(network_acl_values, "rules", {})
-          tags               = merge(lookup(network_acl_values, "tags", local.common_tags), { Name = "${local.common_name}-${vpc_key}-${network_acl_name}" })
+          tags               = merge(lookup(network_acl_values, "tags", local.common_tags), { Name = "${local.custom_common_name[vpc_key]}-${network_acl_name}" })
         }
       } if((length(lookup(vpc_config, "network_acl", {})) > 0))
     ]
@@ -107,7 +107,7 @@ locals {
           vpc_key              = vpc_key
           create_route_table   = lookup(route_table_values, "create_route_table", true)
           create_default_route = lookup(route_table_values, "default_route", {}) == {} ? false : true
-          tags                 = merge(local.common_tags, { Name = "${local.common_name}-${vpc_key}-${route_table_name}" })
+          tags                 = merge(local.common_tags, { Name = "${local.custom_common_name[vpc_key]}-${route_table_name}" })
         }
       } if((length(lookup(vpc_config, "route_table", {})) > 0))
     ]
@@ -160,10 +160,10 @@ locals {
             customer_owned_ipv4_pool        = lookup(subnet_values, "customer_owned_ipv4_pool", null)
             outpost_arn                     = lookup(subnet_values, "outpost_arn", null)
 
-            route_table = lookup(subnet_values, "route_table", "") != "" ? "${vpc_key}-${subnet_values.route_table}" : "${vpc_key}-default"
-            network_acl = lookup(subnet_values, "network_acl", "") != "" ? "${vpc_key}-${subnet_values.network_acl}" : "${vpc_key}-default"
+            route_table = lookup(subnet_values, "route_table", "") != "" ? module.route-table["${vpc_key}-${subnet_values.route_table}"].id : "" #module.route-table[subnet_values.route_table].id #"${local.custom_common_name[vpc_key]}-${subnet_values.route_table}" : "${vpc_key}-default"
+            network_acl = lookup(subnet_values, "network_acl", "") != "" ? module.network-acl["${vpc_key}-${subnet_values.network_acl}"].id : "" #"${local.custom_common_name[vpc_key]}-${subnet_values.network_acl}" : "${vpc_key}-default"
 
-            tags = lookup(subnet_values, "tags", merge(local.common_tags, { Name = "${local.common_name}-${vpc_key}-${subnet_group_name}-${subnet_name}" }))
+            tags = lookup(subnet_values, "tags", merge(local.common_tags, { Name = "${local.custom_common_name[vpc_key]}-${subnet_group_name}-${subnet_name}" }))
 
           }
         } if((length(lookup(vpc_config, "subnets", {})) > 0))
@@ -195,8 +195,8 @@ module "subnet" {
   map_customer_owned_ip_on_launch                = each.value.map_customer_owned_ip_on_launch
   customer_owned_ipv4_pool                       = each.value.customer_owned_ipv4_pool
   outpost_arn                                    = each.value.outpost_arn
-  route_table                                    = module.route-table[each.value.route_table].id
-  network_acl                                    = module.network-acl[each.value.network_acl].id
+  route_table                                    = each.value.route_table
+  network_acl                                    = each.value.network_acl
   tags                                           = each.value.tags
 }
 
@@ -213,7 +213,7 @@ locals {
           kind               = lookup(nat_gateway_values, "kind", "aws")
           subnet             = lookup(nat_gateway_values, "subnet", null)
           nat_parameters     = lookup(nat_gateway_values, "nat_parameters", { connectivity_type = "public" })
-          tags               = merge(lookup(nat_gateway_values, "tags", local.common_tags), { Name = "${local.common_name}-${vpc_key}-${nat_gateway_name}" })
+          tags               = merge(lookup(nat_gateway_values, "tags", local.common_tags), { Name = "${local.custom_common_name[vpc_key]}-${nat_gateway_name}" })
         }
       } if((length(lookup(vpc_config, "nat_gateway", {})) > 0))
     ]
@@ -274,7 +274,7 @@ locals {
           local_gateway_id = try(route_table_values.default_route.local_gateway_id, null)
           #try(module.nat-gateway["${vpc_key}-${route_table_values.default_route.local_gateway}"].ec2_nat_gateway_id, route_table_values.default_route.local_gateway_id, null)
 
-          tags = merge(local.common_tags, { Name = "${local.common_name}-${vpc_key}-${route_table_name}" })
+          tags = merge(local.common_tags, { Name = "${local.custom_common_name[vpc_key]}-${route_table_name}" })
         }
       } if((length(lookup(route_table_values, "default_route", {})) > 0))
     ]
@@ -321,7 +321,7 @@ locals {
             local_gateway_id = try(route_table_values.route_values.local_gateway_id, null)
             #try(module.nat-gateway["${vpc_key}-${route_table_values.route_values.local_gateway}"].ec2_nat_gateway_id, route_table_values.route_values.local_gateway_id, null)
 
-            tags = merge(local.common_tags, { Name = "${local.common_name}-${vpc_key}-${route_table_name}" })
+            tags = merge(local.common_tags, { Name = "${local.custom_common_name[vpc_key]}-${route_table_name}" })
           }
         }
       }
@@ -369,7 +369,7 @@ locals {
           flow_log_hive_compatible_partitions             = lookup(flow_logs_values, "flow_log_hive_compatible_partitions", false)
           flow_log_per_hour_partition                     = lookup(flow_logs_values, "flow_log_per_hour_partition", false)
           vpc_id                                          = module.vpc[vpc_key].vpc_id
-          tags                                            = merge(local.common_tags, { Name = "${local.common_name}-${vpc_key}-${flow_logs_name}" })
+          tags                                            = merge(local.common_tags, { Name = "${local.custom_common_name[vpc_key]}-${flow_logs_name}" })
         }
       } if((length(lookup(vpc_config, "flow_logs", {})) > 0))
     ]
@@ -420,7 +420,7 @@ locals {
           private_dns_enabled = try(endpoint_values.private_dns_enabled, false)
           security_group_ids  = try(endpoint_values.security_group_ids, [])
 
-          tags = merge(local.common_tags, { Name = "${local.common_name}-${vpc_key}-${endpoint_values.service}" })
+          tags = merge(local.common_tags, { Name = "${local.custom_common_name[vpc_key]}-${endpoint_values.service}-vpc-endpoint" })
         }
       }
     }
