@@ -286,12 +286,11 @@ module "wrapper_base" {
         ## Managing TGW VPC Attachments
         vpc_attachments = {
           "prod2" = {                                                                                                                                                                              //must be the same vpc_name
-            subnet_ids                                      = ["private-${data.aws_region.current.name}a", "private-${data.aws_region.current.name}b", "private-${data.aws_region.current.name}c"] // Only 1 Subnet per AZ
+            subnet_ids                                      = ["private-us-east-1a", "private-us-east-1b", "private-us-east-1c"] // Only 1 Subnet per AZ
             dns_support                                     = true
             ipv6_support                                    = false
             transit_gateway_default_route_table_association = true
             transit_gateway_default_route_table_propagation = true
-
             tgw_routes = [
               {
                 destination_cidr_block = "10.15.0.0/16"
@@ -302,11 +301,26 @@ module "wrapper_base" {
                 destination_cidr_block = "0.0.0.0/0"
               }
             ]
+            vpc_routes = {
+              "private" = {
+                destination_cidr_block = [
+                  "10.16.0.0/16", # TEST2
+                  "10.17.0.0/16"  # TEST3
+                ]
+              }
+              "public" = {
+                destination_cidr_block = [
+                  "10.16.0.0/16", # TEST2
+                  "10.17.0.0/16"  # TEST3
+                ]
+              }
+            }
+
           }
           "dev" = {
             dns_support                                     = true
             ipv6_support                                    = false
-            subnet_ids                                      = ["private-${data.aws_region.current.name}a", "private-${data.aws_region.current.name}b", "private-${data.aws_region.current.name}c"] // Only 1 Subnet per AZ
+            subnet_ids                                      = ["private-us-east-1a", "private-us-east-1b", "private-us-east-1c"] // Only 1 Subnet per AZ
             transit_gateway_default_route_table_association = true
             transit_gateway_default_route_table_propagation = true
 
