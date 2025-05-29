@@ -1,35 +1,37 @@
 locals {
-  create_vpc_attachments_tmp = [
-    for tgw_key, tgw_config in var.tgw_parameters :
-    [
-      for vpc_attachments_name, vpc_attachments_values in try(tgw_config.vpc_attachments, {}) :
-      {
-        "${tgw_key}-${vpc_attachments_name}" = {
-          vpc_id = var.vpc_parameter.vpcs[vpc_attachments_name].vpc_id
-          subnet_ids = [
-            for key in vpc_attachments_values.subnet_ids :
-            var.vpc_parameter.subnets["${vpc_attachments_name}-${key}"].id
-          ]
-          tgw_id                                          = lookup(tgw_config, "create_tgw", true) ? null : data.aws_ec2_transit_gateway.this[tgw_key].id
-          appliance_mode_support                          = lookup(vpc_attachments_values, "appliance_mode_support", false)
-          dns_support                                     = lookup(vpc_attachments_values, "dns_support", true)
-          ipv6_support                                    = lookup(vpc_attachments_values, "ipv6_support", false)
-          security_group_referencing_support              = lookup(vpc_attachments_values, "security_group_referencing_support", null)
-          transit_gateway_default_route_table_association = lookup(vpc_attachments_values, "transit_gateway_default_route_table_association", true)
-          transit_gateway_default_route_table_propagation = lookup(vpc_attachments_values, "transit_gate way_default_route_table_propagation", true)
-          tags                                            = merge(lookup(vpc_attachments_values, "tags", local.common_tags), { Name = "${local.common_name}-${tgw_key}-${vpc_attachments_name}" })
+  create_tgw_tmp = [
+    for tgw_key, tgw_config in var.tgw_parameters : {
+      "${tgw_key}" =  merge(tgw_config,
+        {
+            vpc_attachments = {
+            for vpc_attachments_key, vpc_attachments_values in try(tgw_config.vpc_attachments, {}) : vpc_attachments_key => {
+              vpc_id     = var.vpc_parameter.vpcs[vpc_attachments_key].vpc_id
+              subnet_ids = [
+                for subnet_id in vpc_attachments_values.subnet_ids :
+                var.vpc_parameter.subnets["${vpc_attachments_key}-${subnet_id}"].id
+              ]
+              tgw_id                                          = lookup(tgw_config, "create_tgw", true) ? null : data.aws_ec2_transit_gateway.this[tgw_key].id
+              appliance_mode_support                          = lookup(vpc_attachments_values, "appliance_mode_support", false)
+              dns_support                                     = lookup(vpc_attachments_values, "dns_support", true)
+              ipv6_support                                    = lookup(vpc_attachments_values, "ipv6_support", false)
+              security_group_referencing_support              = lookup(vpc_attachments_values, "security_group_referencing_support", null)
+              transit_gateway_default_route_table_association = lookup(vpc_attachments_values, "transit_gateway_default_route_table_association", true)
+              transit_gateway_default_route_table_propagation = lookup(vpc_attachments_values, "transit_gateway_default_route_table_propagation", true)
+              tags                                            = merge(lookup(vpc_attachments_values, "tags", local.common_tags), { Name = "${local.common_name}-${tgw_key}-${vpc_attachments_key}" })
+            }
+          }
         }
-      } if((length(lookup(tgw_config, "vpc_attachments", {})) > 0))
-    ]
+      )
+    } if(length(try(tgw_config, {})) > 0)
   ]
-  create_vpc_attachments = merge(flatten(local.create_vpc_attachments_tmp)...)
+  create_tgw = merge(flatten(local.create_tgw_tmp)...)
 }
 
 module "wrapper_tgw" {
   source  = "terraform-aws-modules/transit-gateway/aws"
   version = "2.12.1"
 
-  for_each = var.tgw_parameters
+  for_each = local.create_tgw
 
   create_tgw        = lookup(each.value, "create_tgw", true)
   create_tgw_routes = lookup(each.value, "create_tgw_routes", true)
@@ -50,7 +52,7 @@ module "wrapper_tgw" {
   ram_principals                = lookup(each.value, "ram_principals", [])
   ram_resource_share_arn        = lookup(each.value, "ram_resource_share_arn", "")
 
-  vpc_attachments                = try(local.create_vpc_attachments, null)
+  vpc_attachments                = each.value.vpc_attachments
   transit_gateway_cidr_blocks    = lookup(each.value, "transit_gateway_cidr_blocks", [])
   transit_gateway_route_table_id = lookup(each.value, "transit_gateway_route_table_id", null)
 
