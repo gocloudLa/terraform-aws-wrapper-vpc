@@ -106,7 +106,7 @@ module "wrapper_base" {
 
         vpc_attachments = {
           "stg" = {
-            subnet_ids = ["private-${data.aws_region.current.name}a", "private-${data.aws_region.current.name}b", "private-${data.aws_region.current.name}c"] // Only 1 Subnet per AZ
+            subnet_ids = ["private-us-east-1a", "private-us-east-1b", "private-us-east-1c"] // Only 1 Subnet per AZ
             tgw_routes = [
               {
                 destination_cidr_block = "10.17.0.0/16"
@@ -119,7 +119,7 @@ module "wrapper_base" {
           ] }
         }
         vpc_routes = {
-          "test3" = {
+          "stg" = {
             "private" = {
               destination_cidr_block = ["10.15.0.0/16", "10.16.0.0/16"]
             }
