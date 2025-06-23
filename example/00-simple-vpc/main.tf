@@ -5,8 +5,136 @@ module "wrapper_vpc" {
 
   vpc_parameters = {
     vpc = {
-      "test" = {
-        # VPC Parameters
+      # "test" = { ## with EC2-NAT
+      #   vpc_cidr = "10.130.0.0/16"
+      #   internet_gateway = {
+      #     "00-igw" = {}
+      #   }
+      #   nat_gateway = {
+      #     "natgw" = {
+      #       subnet = "public-${data.aws_region.current.name}a"
+      #       kind   = "ec2" # OPCION AWS
+      #       nat_parameters = {
+      #         ec2_nat_gateway_attach_eip = true,
+      #         connectivity_type          = "public"
+      #       }
+      #     }
+      #   }
+      #   route_table = {
+      #     "00-private" = {
+      #       routes = {
+      #       }
+      #       default_route = {
+      #         network_interface = "natgw"
+      #       }
+      #     }
+      #     "00-public" = {
+      #       routes = {
+      #       }
+      #       default_route = {
+      #         gateway = "00-igw"
+      #       }
+      #     }
+      #   }
+      #   network_acl = {}
+      #   subnets = {
+      #     "private" = {
+      #       "${data.aws_region.current.name}a" = {
+      #         cidr_block  = cidrsubnet("10.130.0.0/16", 4, 0)
+      #         az          = "a"
+      #         route_table = "00-private"
+      #         network_acl = ""
+      #       }
+      #       "${data.aws_region.current.name}b" = {
+      #         cidr_block  = cidrsubnet("10.130.0.0/16", 4, 1)
+      #         az          = "b"
+      #         route_table = "00-private"
+      #         network_acl = ""
+      #       }
+      #       "${data.aws_region.current.name}c" = {
+      #         cidr_block  = cidrsubnet("10.130.0.0/16", 4, 2)
+      #         az          = "c"
+      #         route_table = "00-private"
+      #         network_acl = ""
+      #       }
+      #     }
+      #     "public" = {
+      #       "${data.aws_region.current.name}a" = {
+      #         cidr_block  = cidrsubnet("10.130.0.0/16", 4, 3)
+      #         az          = "a"
+      #         route_table = "00-public"
+      #         network_acl = ""
+      #       }
+      #       "${data.aws_region.current.name}b" = {
+      #         cidr_block  = cidrsubnet("10.130.0.0/16", 4, 4)
+      #         az          = "b"
+      #         route_table = "00-public"
+      #         network_acl = ""
+      #       }
+      #       "${data.aws_region.current.name}c" = {
+      #         cidr_block  = cidrsubnet("10.130.0.0/16", 4, 5)
+      #         az          = "c"
+      #         route_table = "00-public"
+      #         network_acl = ""
+      #       }
+      #     }
+      #     "db" = {
+      #       "${data.aws_region.current.name}a" = {
+      #         cidr_block  = cidrsubnet("10.130.0.0/16", 4, 6)
+      #         az          = "a"
+      #         route_table = "00-private"
+      #         network_acl = ""
+      #       }
+      #       "${data.aws_region.current.name}b" = {
+      #         cidr_block  = cidrsubnet("10.130.0.0/16", 4, 7)
+      #         az          = "b"
+      #         route_table = "00-private"
+      #         network_acl = ""
+      #       }
+      #       "${data.aws_region.current.name}c" = {
+      #         cidr_block  = cidrsubnet("10.130.0.0/16", 4, 8)
+      #         az          = "c"
+      #         route_table = "00-private"
+      #         network_acl = ""
+      #       }
+      #     }
+      #     "elasticache" = {
+      #       "${data.aws_region.current.name}a" = {
+      #         cidr_block  = cidrsubnet("10.130.0.0/16", 4, 9)
+      #         az          = "a"
+      #         route_table = "00-private"
+      #         network_acl = ""
+      #       }
+      #       "${data.aws_region.current.name}b" = {
+      #         cidr_block  = cidrsubnet("10.130.0.0/16", 4, 10)
+      #         az          = "b"
+      #         route_table = "00-private"
+      #         network_acl = ""
+      #       }
+      #       "${data.aws_region.current.name}c" = {
+      #         cidr_block  = cidrsubnet("10.130.0.0/16", 4, 11)
+      #         az          = "c"
+      #         route_table = "00-private"
+      #         network_acl = ""
+      #       }
+      #     }
+      #   }
+      #   endpoints = {
+      #     "00" = {
+      #       service         = "s3"
+      #       service_type    = "Gateway"
+      #       route_table_ids = ["00-private", "00-public"]
+      #       policy          = data.aws_iam_policy_document.s3_endpoint_policy.json
+      #     },
+      #     "01" = {
+      #       service         = "dynamodb"
+      #       service_type    = "Gateway"
+      #       route_table_ids = ["00-private", "00-public"]
+      #       policy          = data.aws_iam_policy_document.dynamodb_endpoint_policy.json
+      #     }
+      #   }
+      # }
+      "test" = { ## with AWS-NAT
         vpc_cidr = "10.130.0.0/16"
         internet_gateway = {
           "00-igw" = {}
@@ -14,11 +142,11 @@ module "wrapper_vpc" {
         nat_gateway = {
           "natgw" = {
             subnet = "public-${data.aws_region.current.name}a"
-            kind   = "ec2" # OPCION AWS
-            nat_parameters = {
-              ec2_nat_gateway_attach_eip = true,
-              connectivity_type          = "public"
-            }
+            kind   = "aws" # OPCION AWS
+            # nat_parameters = {
+            #   ec2_nat_gateway_attach_eip = true,
+            #   connectivity_type          = "public"
+            # }
           }
         }
         route_table = {
@@ -26,7 +154,7 @@ module "wrapper_vpc" {
             routes = {
             }
             default_route = {
-              network_interface = "natgw"
+              nat_gateway = "natgw"
             }
           }
           "00-public" = {
@@ -135,143 +263,6 @@ module "wrapper_vpc" {
           }
         }
       }
-
-      # "prod" = {
-      #   vpc_cidr = "10.16.0.0/16"
-      #   internet_gateway = {
-      #     "00-igw" = {}
-      #   }
-      #   nat_gateway = {
-      #     "00-nat" = {
-      #       subnet = "public-02"
-      #       kind   = "aws" # OPCION AWS
-      #     }
-      #   }
-      #   route_table = {
-      #     "00-private" = {
-      #       routes = {
-      #       }
-      #       default_route = {
-      #         nat_gateway = "00-nat"
-      #       }
-      #     }
-      #     "00-public" = {
-      #       routes = {
-      #       }
-      #       default_route = {
-      #         gateway = "00-igw"
-      #       }
-      #     }
-      #     "00-databases" = {
-      #       routes = {
-      #       }
-      #       default_route = {
-      #         nat_gateway = "00-nat"
-      #       }
-      #     }
-      #   }
-      #   network_acl = {
-      #     "00" = {
-      #       rules = {}
-      #     }
-      #   }
-      #   subnets = {
-      #     "private" = {
-      #       "01" = {
-      #         cidr_block  = "10.16.1.0/24"
-      #         az          = "a"
-      #         route_table = "00-private"
-      #         network_acl = "00"
-      #       }
-      #       "02" = {
-      #         cidr_block  = "10.16.2.0/24"
-      #         az          = "b"
-      #         route_table = "00-private"
-      #         network_acl = "00"
-      #       }
-      #       "03" = {
-      #         cidr_block  = "10.16.3.0/24"
-      #         az          = "c"
-      #         route_table = "00-private"
-      #         network_acl = "00"
-      #       }
-      #     }
-      #     "public" = {
-      #       "01" = {
-      #         cidr_block  = "10.16.101.0/24"
-      #         az          = "a"
-      #         route_table = "00-public"
-      #         network_acl = "00"
-      #       }
-      #       "02" = {
-      #         cidr_block  = "10.16.102.0/24"
-      #         az          = "b"
-      #         route_table = "00-public"
-      #         network_acl = "00"
-      #       }
-      #       "03" = {
-      #         cidr_block  = "10.16.103.0/24"
-      #         az          = "c"
-      #         route_table = "00-public"
-      #         network_acl = "00"
-      #       }
-      #     }
-      #     "db" = {
-      #       "01" = {
-      #         cidr_block  = "10.16.201.0/24"
-      #         az          = "a"
-      #         route_table = "00-databases"
-      #         network_acl = "00"
-      #       }
-      #       "02" = {
-      #         cidr_block  = "10.16.202.0/24"
-      #         az          = "b"
-      #         route_table = "00-databases"
-      #         network_acl = "00"
-      #       }
-      #       "03" = {
-      #         cidr_block  = "10.16.203.0/24"
-      #         az          = "c"
-      #         route_table = "00-databases"
-      #         network_acl = "00"
-      #       }
-      #     }
-      #     "elasticache" = {
-      #       "01" = {
-      #         cidr_block  = "10.16.211.0/24"
-      #         az          = "a"
-      #         route_table = "00-databases"
-      #         network_acl = "00"
-      #       }
-      #       "02" = {
-      #         cidr_block  = "10.16.212.0/24"
-      #         az          = "b"
-      #         route_table = "00-databases"
-      #         network_acl = "00"
-      #       }
-      #       "03" = {
-      #         cidr_block  = "10.16.213.0/24"
-      #         az          = "c"
-      #         route_table = "00-databases"
-      #         network_acl = "00"
-      #       }
-      #     }
-      #   }
-      #   endpoints = {
-      #     "00" = {
-      #       service         = "s3"
-      #       service_type    = "Gateway"
-      #       route_table_ids = ["00-private", "00-public", "00-databases"]
-      #       policy          = data.aws_iam_policy_document.s3_endpoint_policy.json
-      #     },
-      #     "01" = {
-      #       service         = "dynamodb"
-      #       service_type    = "Gateway"
-      #       route_table_ids = ["00-private", "00-public", "00-databases"]
-      #       policy          = data.aws_iam_policy_document.dynamodb_endpoint_policy.json
-      #     }
-      #   }
-      # }
     }
     tgw = {}
     vpn = {}
@@ -344,15 +335,28 @@ module "wrapper_vpc" {
 #   to   = module.wrapper_vpc.module.wrapper_vpc.module.route-table["test-00-public"].aws_route_table.this[0]
 # }
 
-# # Default Route
+# # IGW
 # moved {
 #   from = module.wrapper_vpc.module.vpc.aws_internet_gateway.this[0]
 #   to   = module.wrapper_vpc.module.wrapper_vpc.module.internet-gateway["test-00-igw"].aws_internet_gateway.this[0]
 # }
-
 # moved {
 #   from = module.wrapper_vpc.module.vpc.aws_route.public_internet_gateway[0]
 #   to   = module.wrapper_vpc.module.wrapper_vpc.module.route-association["test-00-public"].aws_route.default[0]
+# }
+
+# # if using AWS NAT-GW
+# moved {
+#   from = module.wrapper_vpc.module.vpc.aws_route.private_nat_gateway[0]
+#   to   = module.wrapper_vpc.module.wrapper_vpc.module.route-association["test-00-private"].aws_route.default[0]
+# }
+# moved {
+#   from = module.wrapper_vpc.module.vpc.aws_eip.nat[0]
+#   to   = module.wrapper_vpc.module.wrapper_vpc.module.nat-gateway["test-natgw"].aws_eip.this[0]
+# }
+# moved {
+#   from = module.wrapper_vpc.module.vpc.aws_nat_gateway.this[0]
+#   to   = module.wrapper_vpc.module.wrapper_vpc.module.nat-gateway["test-natgw"].aws_nat_gateway.this[0]
 # }
 
 # # Route Table association

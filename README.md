@@ -58,13 +58,14 @@ If you found a bug, please open an issue in this repository.
 
 #### Internet Gateway
   - `module.wrapper_vpc.module.vpc.aws_internet_gateway.this[0]` => `module.wrapper_vpc.module.wrapper_vpc.module.internet-gateway["vpc-key"-"igw-key""].aws_internet_gateway.this[0]`
+  - `module.wrapper_vpc.module.vpc.aws_route.public_internet_gateway[0]` => `module.wrapper_vpc.module.wrapper_vpc.module.route-association["vpc-key"-"igw-key"].aws_route.default[0]`
 
 #### AWS NAT Gateway
+moved {
+  - `module.wrapper_vpc.module.vpc.aws_route.private_nat_gateway[0]` => `module.wrapper_vpc.module.wrapper_vpc.module.route-association["vpc-key"-"rt-key"].aws_route.default[0]`
+  - `module.wrapper_vpc.module.vpc.aws_eip.nat[0]` => `module.wrapper_vpc.module.wrapper_vpc.module.nat-gateway["vpc-key"-"natgw-key"].aws_eip.this[0]`
+  - `module.wrapper_vpc.module.vpc.aws_nat_gateway.this[0] ` => `module.wrapper_vpc.module.wrapper_vpc.module.nat-gateway["vpc-key"-"natgw-key"].aws_nat_gateway.this[0]`
 
-#### Route Table Default Asociation
-  - `module.wrapper_vpc.module.vpc.aws_route.public_internet_gateway[0]` => `module.wrapper_vpc.module.wrapper_vpc.module.route-association["key"].aws_route.default[0]`
-  - `module.wrapper_vpc.module.vpc-ec2-nat-gateway.aws_route.this[0]` => `module.wrapper_vpc.module.wrapper_vpc.module.route-association["test-00-private"].aws_route.default[0]`
-  
 #### Route Table Asociation
   - `module.wrapper_vpc.module.vpc.aws_route_table_association.database[0]` => `module.wrapper_vpc.module.wrapper_vpc.module.subnet["key"].aws_route_table_association.this`
 
@@ -144,6 +145,7 @@ moved {
   from = module.wrapper_vpc.module.vpc.aws_subnet.public[2]
   to   = module.wrapper_vpc.module.wrapper_vpc.module.subnet["test-public-us-east-1c"].aws_subnet.this[0]
 }
+
 # Route Table
 moved {
   from = module.wrapper_vpc.module.vpc.aws_route_table.private[0]
@@ -154,15 +156,28 @@ moved {
   to   = module.wrapper_vpc.module.wrapper_vpc.module.route-table["test-00-public"].aws_route_table.this[0]
 }
 
-# Default Route
+# IGW
 moved {
   from = module.wrapper_vpc.module.vpc.aws_internet_gateway.this[0]
   to   = module.wrapper_vpc.module.wrapper_vpc.module.internet-gateway["test-00-igw"].aws_internet_gateway.this[0]
 }
-
 moved {
   from = module.wrapper_vpc.module.vpc.aws_route.public_internet_gateway[0]
   to   = module.wrapper_vpc.module.wrapper_vpc.module.route-association["test-00-public"].aws_route.default[0]
+}
+
+# if using AWS NAT-GW
+moved {
+  from = module.wrapper_vpc.module.vpc.aws_route.private_nat_gateway[0]
+  to   = module.wrapper_vpc.module.wrapper_vpc.module.route-association["test-00-private"].aws_route.default[0]
+}
+moved {
+  from = module.wrapper_vpc.module.vpc.aws_eip.nat[0]
+  to   = module.wrapper_vpc.module.wrapper_vpc.module.nat-gateway["test-natgw"].aws_eip.this[0]
+}
+moved {
+  from = module.wrapper_vpc.module.vpc.aws_nat_gateway.this[0]
+  to   = module.wrapper_vpc.module.wrapper_vpc.module.nat-gateway["test-natgw"].aws_nat_gateway.this[0]
 }
 
 # Route Table association
