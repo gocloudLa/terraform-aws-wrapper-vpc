@@ -106,7 +106,7 @@ resource "aws_default_network_acl" "this" {
     protocol   = -1
     rule_no    = 100
     action     = "allow"
-    cidr_block = each.value.vpc_cidr  #aws_default_vpc.mainvpc.cidr_block
+    cidr_block = each.value.vpc_cidr #aws_default_vpc.mainvpc.cidr_block
     from_port  = 0
     to_port    = 0
   }
@@ -191,7 +191,7 @@ locals {
             customer_owned_ipv4_pool        = lookup(subnet_values, "customer_owned_ipv4_pool", null)
             outpost_arn                     = lookup(subnet_values, "outpost_arn", null)
 
-            route_table = lookup(subnet_values, "route_table", "") != "" ? module.route-table["${vpc_key}-${subnet_values.route_table}"].id : "" #module.route-table[subnet_values.route_table].id #"${local.custom_common_name[vpc_key]}-${subnet_values.route_table}" : "${vpc_key}-default"
+            route_table = lookup(subnet_values, "route_table", "") != "" ? module.route-table["${vpc_key}-${subnet_values.route_table}"].id : ""                                            #module.route-table[subnet_values.route_table].id #"${local.custom_common_name[vpc_key]}-${subnet_values.route_table}" : "${vpc_key}-default"
             network_acl = lookup(subnet_values, "network_acl", "") != "" ? module.network-acl["${vpc_key}-${subnet_values.network_acl}"].id : aws_default_network_acl.this["${vpc_key}"].id #"${local.custom_common_name[vpc_key]}-${subnet_values.network_acl}" : "${vpc_key}-default"
 
             tags = lookup(subnet_values, "tags", merge(local.common_tags, { Name = "${local.custom_common_name[vpc_key]}-${subnet_group_name}-${subnet_name}" }))

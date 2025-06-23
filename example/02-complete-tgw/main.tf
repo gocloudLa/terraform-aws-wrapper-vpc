@@ -285,7 +285,7 @@ module "wrapper_base" {
 
         ## Managing TGW VPC Attachments
         vpc_attachments = {
-          "prod2" = {                                                                                                                                                                              //must be the same vpc_name
+          "prod2" = {                                                                                                            //must be the same vpc_name
             subnet_ids                                      = ["private-us-east-1a", "private-us-east-1b", "private-us-east-1c"] // Only 1 Subnet per AZ
             dns_support                                     = true
             ipv6_support                                    = false

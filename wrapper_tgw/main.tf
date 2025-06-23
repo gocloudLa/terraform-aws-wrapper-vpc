@@ -1,11 +1,11 @@
 locals {
   create_tgw_tmp = [
     for tgw_key, tgw_config in var.tgw_parameters : {
-      "${tgw_key}" =  merge(tgw_config,
+      "${tgw_key}" = merge(tgw_config,
         {
-            vpc_attachments = {
+          vpc_attachments = {
             for vpc_attachments_key, vpc_attachments_values in try(tgw_config.vpc_attachments, {}) : vpc_attachments_key => {
-              vpc_id     = var.vpc_parameter.vpcs[vpc_attachments_key].vpc_id
+              vpc_id = var.vpc_parameter.vpcs[vpc_attachments_key].vpc_id
               subnet_ids = [
                 for subnet_id in vpc_attachments_values.subnet_ids :
                 var.vpc_parameter.subnets["${vpc_attachments_key}-${subnet_id}"].id
