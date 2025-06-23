@@ -278,8 +278,6 @@ module "wrapper_vpc" {
   }
 }
 
-
-
 # # VPC
 # moved {
 #   from = module.wrapper_vpc.module.vpc.aws_vpc.this[0]
@@ -335,6 +333,7 @@ module "wrapper_vpc" {
 #   from = module.wrapper_vpc.module.vpc.aws_subnet.public[2]
 #   to   = module.wrapper_vpc.module.wrapper_vpc.module.subnet["test-public-us-east-1c"].aws_subnet.this[0]
 # }
+
 # # Route Table
 # moved {
 #   from = module.wrapper_vpc.module.vpc.aws_route_table.private[0]
@@ -489,5 +488,3 @@ module "wrapper_vpc" {
 #   from = module.wrapper_vpc.module.vpc-ec2-nat-gateway.module.security_group[0].aws_security_group_rule.ingress_rules[0]
 #   to   = module.wrapper_vpc.module.wrapper_vpc.module.nat-gateway["test-natgw"].module.vpc-ec2-nat-gateway[0].module.security_group[0].aws_security_group_rule.ingress_rules[0]
 # }
-
-# Plan: 12 to add, 19 to change, 0 to destroy.
