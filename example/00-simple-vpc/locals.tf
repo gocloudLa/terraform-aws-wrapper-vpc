@@ -2,7 +2,7 @@ locals {
 
   metadata = {
     aws_region  = "us-east-1"
-    environment = "production"
+    environment = "Test"
 
     public_domain  = "democorp.cloud"
     private_domain = "democorp"
@@ -10,7 +10,7 @@ locals {
     key = {
       company = "dmc"
       region  = "use1"
-      env     = "prd"
+      env     = "tes"
     }
   }
 

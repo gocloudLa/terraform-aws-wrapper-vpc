@@ -1,3 +1,8 @@
+data "aws_region" "current" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
 data "aws_iam_policy_document" "dynamodb_endpoint_policy" {
   statement {
     effect    = "Allow"
