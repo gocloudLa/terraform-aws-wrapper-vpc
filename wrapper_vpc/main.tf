@@ -7,6 +7,7 @@ module "vpc" {
 
   ## VPC Definition
   cidr_block                           = lookup(each.value, "vpc_cidr", "") ## it does not match example value
+  use_ipam_pool                        = lookup(each.value, "use_ipam_pool", false)
   ipv4_ipam_pool_id                    = lookup(each.value, "ipv4_ipam_pool_id", null)
   ipv4_netmask_length                  = lookup(each.value, "ipv4_netmask_length", null)
   enable_ipv6                          = lookup(each.value, "enable_ipv6", false)
@@ -96,6 +97,24 @@ module "network-acl" {
   tags = each.value.tags
 }
 
+resource "aws_default_network_acl" "this" {
+  for_each = var.vpc_parameters
+
+  default_network_acl_id = module.vpc[each.key].default_network_acl_id #aws_vpc.mainvpc.default_network_acl_id
+
+  ingress {
+    protocol   = -1
+    rule_no    = 100
+    action     = "allow"
+    cidr_block = each.value.vpc_cidr  #aws_default_vpc.mainvpc.cidr_block
+    from_port  = 0
+    to_port    = 0
+  }
+  lifecycle {
+    ignore_changes = [subnet_ids]
+  }
+}
+
 ## Route Table
 locals {
   create_route_table_tmp = [
@@ -124,6 +143,18 @@ module "route-table" {
   vpc_id             = module.vpc[each.value.vpc_key].vpc_id
 
   tags = each.value.tags
+}
+
+resource "aws_default_route_table" "this" {
+  for_each = var.vpc_parameters
+
+  default_route_table_id = module.vpc[each.key].default_route_table_id # aws_vpc.example.default_route_table_id
+
+  route = []
+
+  tags = {
+    Name = "example"
+  }
 }
 
 ## Subnets
@@ -161,7 +192,7 @@ locals {
             outpost_arn                     = lookup(subnet_values, "outpost_arn", null)
 
             route_table = lookup(subnet_values, "route_table", "") != "" ? module.route-table["${vpc_key}-${subnet_values.route_table}"].id : "" #module.route-table[subnet_values.route_table].id #"${local.custom_common_name[vpc_key]}-${subnet_values.route_table}" : "${vpc_key}-default"
-            network_acl = lookup(subnet_values, "network_acl", "") != "" ? module.network-acl["${vpc_key}-${subnet_values.network_acl}"].id : "" #"${local.custom_common_name[vpc_key]}-${subnet_values.network_acl}" : "${vpc_key}-default"
+            network_acl = lookup(subnet_values, "network_acl", "") != "" ? module.network-acl["${vpc_key}-${subnet_values.network_acl}"].id : aws_default_network_acl.this["${vpc_key}"].id #"${local.custom_common_name[vpc_key]}-${subnet_values.network_acl}" : "${vpc_key}-default"
 
             tags = lookup(subnet_values, "tags", merge(local.common_tags, { Name = "${local.custom_common_name[vpc_key]}-${subnet_group_name}-${subnet_name}" }))
 
