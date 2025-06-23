@@ -79,11 +79,3 @@ resource "aws_vpc_dhcp_options_association" "this" {
   vpc_id          = aws_vpc.this.id
   dhcp_options_id = aws_vpc_dhcp_options.this[0].id
 }
-
-################################################################################
-# Default Security Group
-################################################################################
-resource "aws_default_security_group" "this" {
-
-  vpc_id = aws_vpc.this.id
-}

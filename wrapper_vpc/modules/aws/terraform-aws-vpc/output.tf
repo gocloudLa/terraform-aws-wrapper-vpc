@@ -19,5 +19,13 @@ output "vpc_name" {
 # }
 
 output "security_group_id" {
-  value = aws_default_security_group.this.id
+  value = aws_default_security_group.default.id
+}
+
+output "default_route_table_id" {
+  value = aws_vpc.this.default_route_table_id
+}
+
+output "default_network_acl_id" {
+  value = aws_vpc.this.default_network_acl_id
 }
