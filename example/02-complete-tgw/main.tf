@@ -1,4 +1,4 @@
-module "wrapper_base" {
+module "wrapper_vpc" {
   source = "../../"
 
   metadata = local.metadata
