@@ -1,3 +1,3 @@
-output "wrapper_vpc" {
-  value = module.wrapper_vpc
-}
+# output "wrapper_vpc" {
+#   value = module.wrapper_vpc
+# }

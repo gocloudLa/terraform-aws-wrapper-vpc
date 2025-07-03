@@ -1,14 +1,16 @@
 /*----------------------------------------------------------------------*/
-/* VPC | Variable Definition                                            */
+/* Common |                                                             */
 /*----------------------------------------------------------------------*/
-variable "tgw_parameters" {
-  type        = any
-  description = "Tansit gateway parameteres to configure transit gateway module"
-  default     = {}
-}
 
-variable "tgw_defaults" {
+# variable "metadata" {
+#   type = any
+# }
+
+/*----------------------------------------------------------------------*/
+/* VPC Parameters | Variable Definition                                 */
+/*----------------------------------------------------------------------*/
+variable "vpc_parameters" {
   type        = any
-  description = "Tansit gateway defaults parameteres to configure tansit gateway module"
+  description = "VPC parameters to configure multiple VPC, TGW and VPN resources"
   default     = {}
 }
