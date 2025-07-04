@@ -152,9 +152,7 @@ resource "aws_default_route_table" "this" {
 
   route = []
 
-  tags = {
-    Name = "example"
-  }
+  tags = each.value.tags
 }
 
 ## Subnets
@@ -178,7 +176,7 @@ locals {
             enable_resource_name_dns_aaaa_record_on_launch = lookup(subnet_values, "enable_resource_name_dns_aaaa_record_on_launch", false)
             enable_resource_name_dns_a_record_on_launch    = lookup(subnet_values, "enable_resource_name_dns_a_record_on_launch", false)
             private_dns_hostname_type_on_launch            = lookup(subnet_values, "private_dns_hostname_type_on_launch", null)
-            map_public_ip_on_launch                        = lookup(subnet_values, "map_public_ip_on_launch", true)
+            map_public_ip_on_launch                        = lookup(subnet_values, "map_public_ip_on_launch", false)
             enable_lni_at_device_index                     = lookup(subnet_values, "enable_lni_at_device_index", null)
 
             ## IPv6
