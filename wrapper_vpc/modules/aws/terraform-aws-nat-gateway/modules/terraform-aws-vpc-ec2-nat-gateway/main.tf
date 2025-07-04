@@ -1,6 +1,6 @@
 module "ec2_instance" {
   source  = "terraform-aws-modules/ec2-instance/aws"
-  version = "5.7.0"
+  version = "6.0.2"
   count   = var.create ? 1 : 0
 
   name                   = var.name
@@ -8,6 +8,7 @@ module "ec2_instance" {
   instance_type          = var.instance_type
   availability_zone      = data.aws_subnet.this[0].availability_zone
   subnet_id              = var.subnet_id
+  create_security_group  = false
   vpc_security_group_ids = [module.security_group[0].security_group_id]
 
   ignore_ami_changes = true
@@ -26,18 +27,15 @@ module "ec2_instance" {
   user_data_base64            = base64encode(local.user_data)
   user_data_replace_on_change = true
   enable_volume_tags          = false
-  root_block_device = [
-    {
-      delete_on_termination = lookup(var.root_block_device, "delete_on_termination", true)
-      encrypted             = lookup(var.root_block_device, "encrypted", true)
-      iops                  = lookup(var.root_block_device, "iops", null)
-      kms_key_id            = lookup(var.root_block_device, "kms_key_id", null)
-      volume_size           = lookup(var.root_block_device, "volume_size", 8)
-      volume_type           = lookup(var.root_block_device, "volume_type", "gp3")
-      throughput            = lookup(var.root_block_device, "throughput", null)
-      tags                  = merge(var.tags, { volume = "root" })
-    }
-  ]
+  root_block_device = {
+    delete_on_termination = lookup(var.root_block_device, "delete_on_termination", true)
+    encrypted             = lookup(var.root_block_device, "encrypted", true)
+    iops                  = lookup(var.root_block_device, "iops", null)
+    kms_key_id            = lookup(var.root_block_device, "kms_key_id", null)
+    volume_size           = lookup(var.root_block_device, "volume_size", 8)
+    volume_type           = lookup(var.root_block_device, "volume_type", "gp3")
+    throughput            = lookup(var.root_block_device, "throughput", null)
+  }
 
   tags = var.tags
 }
