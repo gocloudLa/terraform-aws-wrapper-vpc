@@ -45,7 +45,16 @@ locals {
             vpc_key                 = vpc_key,
             enable_ipv6             = lookup(vpc_config, "enable_ipv6", false)
             create_egress_only_igw  = lookup(internet_gateway_values, "create_egress_only_igw", false)
-            tags                    = merge(lookup(internet_gateway_values, "tags", local.common_tags), { Name = "${local.custom_common_name[vpc_key]}-${internet_gateway_name}" })
+            tags = merge(
+            lookup(internet_gateway_values, "tags", local.common_tags),
+            {
+              Name = (
+                internet_gateway_name == "" ?
+                local.custom_common_name[vpc_key] :
+                "${local.custom_common_name[vpc_key]}-${internet_gateway_name}"
+              )
+            }
+          )
         })
       } if((length(lookup(vpc_config, "internet_gateway", {})) > 0))
     ]
@@ -83,6 +92,16 @@ locals {
     ]
   ]
   create_network_acl = merge(flatten(local.create_network_acl_tmp)...)
+
+  subnets_without_custom_nacl = flatten([
+    for vpc_key, vpc_config in var.vpc_parameters : [
+      for subnet_group_name, subnet_group_values in try(vpc_config.subnets, {}) : [
+        for subnet_name, subnet_values in try(subnet_group_values, {}) :
+        "${vpc_key}-${subnet_group_name}-${subnet_name}"
+        if lookup(subnet_values, "network_acl", "") == ""
+      ]
+    ]
+  ])
 }
 module "network-acl" {
 
@@ -100,19 +119,62 @@ module "network-acl" {
 resource "aws_default_network_acl" "this" {
   for_each = var.vpc_parameters
 
-  default_network_acl_id = module.vpc[each.key].default_network_acl_id #aws_vpc.mainvpc.default_network_acl_id
+  default_network_acl_id = module.vpc[each.key].default_network_acl_id
 
+  subnet_ids = [
+    for key in local.subnets_without_custom_nacl :
+    module.subnet[key].id
+    if startswith(key, "${each.key}-")  # filters only subnets for this VPC
+  ]
+  egress {
+    action          = "allow"
+    cidr_block      = null
+    from_port       = 0
+    icmp_code       = 0
+    icmp_type       = 0
+    ipv6_cidr_block = "::/0"
+    protocol        = "-1"
+    rule_no         = 101
+    to_port         = 0
+  }
+  egress {
+    action          = "allow"
+    cidr_block      = "0.0.0.0/0"
+    from_port       = 0
+    icmp_code       = 0
+    icmp_type       = 0
+    ipv6_cidr_block = null
+    protocol        = "-1"
+    rule_no         = 100
+    to_port         = 0
+  }
   ingress {
-    protocol   = -1
-    rule_no    = 100
-    action     = "allow"
-    cidr_block = each.value.vpc_cidr #aws_default_vpc.mainvpc.cidr_block
-    from_port  = 0
-    to_port    = 0
+    action          = "allow"
+    cidr_block      = null
+    from_port       = 0
+    icmp_code       = 0
+    icmp_type       = 0
+    ipv6_cidr_block = "::/0"
+    protocol        = "-1"
+    rule_no         = 101
+    to_port         = 0
+  }
+  ingress {
+    action          = "allow"
+    cidr_block      = "0.0.0.0/0"
+    from_port       = 0
+    icmp_code       = 0
+    icmp_type       = 0
+    ipv6_cidr_block = null
+    protocol        = "-1"
+    rule_no         = 100
+    to_port         = 0
   }
   lifecycle {
     ignore_changes = [subnet_ids]
   }
+
+  tags = merge(lookup(each.value, "tags", local.common_tags), { Name = "${local.custom_common_name[each.key]}-default" })
 }
 
 ## Route Table
@@ -152,7 +214,7 @@ resource "aws_default_route_table" "this" {
 
   route = []
 
-  tags = each.value.tags
+  tags = merge({ Name = "${local.custom_common_name[each.key]}-default" }, lookup(each.value, "tags", local.common_tags))
 }
 
 ## Subnets
@@ -165,11 +227,10 @@ locals {
         for subnet_name, subnet_values in try(subnet_group_values, {}) :
         {
           "${vpc_key}-${subnet_group_name}-${subnet_name}" = {
-
             create_subnet     = lookup(subnet_values, "create_subnet", true)
             vpc_id            = module.vpc[vpc_key].vpc_id
             cidr_block        = lookup(subnet_values, "cidr_block", null)
-            availability_zone = "${data.aws_region.current.name}${subnet_values.az}"
+            availability_zone = "${data.aws_region.current.region}${subnet_values.az}"
             #availability_zone_id = ## if zone name fails, check regions
             ## Configurations
             enable_dns64                                   = lookup(subnet_values, "enable_dns64", false)
@@ -190,7 +251,8 @@ locals {
             outpost_arn                     = lookup(subnet_values, "outpost_arn", null)
 
             route_table = lookup(subnet_values, "route_table", "") != "" ? module.route-table["${vpc_key}-${subnet_values.route_table}"].id : ""                                            #module.route-table[subnet_values.route_table].id #"${local.custom_common_name[vpc_key]}-${subnet_values.route_table}" : "${vpc_key}-default"
-            network_acl = lookup(subnet_values, "network_acl", "") != "" ? module.network-acl["${vpc_key}-${subnet_values.network_acl}"].id : aws_default_network_acl.this["${vpc_key}"].id #"${local.custom_common_name[vpc_key]}-${subnet_values.network_acl}" : "${vpc_key}-default"
+            network_acl = lookup(subnet_values, "network_acl", "") != "" ? module.network-acl["${vpc_key}-${subnet_values.network_acl}"].id : ""
+             # aws_default_network_acl.this["${vpc_key}"].id #"${local.custom_common_name[vpc_key]}-${subnet_values.network_acl}" : "${vpc_key}-default"
 
             tags = lookup(subnet_values, "tags", merge(local.common_tags, { Name = "${local.custom_common_name[vpc_key]}-${subnet_group_name}-${subnet_name}" }))
 
@@ -456,7 +518,6 @@ locals {
   ]
   create_endpoints = merge(flatten(local.create_endpoints_tmp)...)
 }
-
 
 module "vpc-endpoint" {
   source = "./modules/aws/terraform-aws-vpc-endpoints"
