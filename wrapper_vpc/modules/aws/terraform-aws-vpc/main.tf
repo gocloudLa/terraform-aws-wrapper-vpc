@@ -42,8 +42,9 @@ resource "aws_default_security_group" "default" {
   vpc_id = aws_vpc.this.id
 
   ingress {
+    cidr_blocks = ["0.0.0.0/0"]
     protocol  = -1
-    self      = true
+    self      = false
     from_port = 0
     to_port   = 0
   }
@@ -54,6 +55,8 @@ resource "aws_default_security_group" "default" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  tags = merge(var.tags,{ Name = ("${var.tags.Name}-default" ) } )
 }
 
 ################################################################################
