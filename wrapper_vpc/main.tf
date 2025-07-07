@@ -46,15 +46,15 @@ locals {
             enable_ipv6             = lookup(vpc_config, "enable_ipv6", false)
             create_egress_only_igw  = lookup(internet_gateway_values, "create_egress_only_igw", false)
             tags = merge(
-            lookup(internet_gateway_values, "tags", local.common_tags),
-            {
-              Name = (
-                internet_gateway_name == "" ?
-                local.custom_common_name[vpc_key] :
-                "${local.custom_common_name[vpc_key]}-${internet_gateway_name}"
-              )
-            }
-          )
+              lookup(internet_gateway_values, "tags", local.common_tags),
+              {
+                Name = (
+                  internet_gateway_name == "" ?
+                  local.custom_common_name[vpc_key] :
+                  "${local.custom_common_name[vpc_key]}-${internet_gateway_name}"
+                )
+              }
+            )
         })
       } if((length(lookup(vpc_config, "internet_gateway", {})) > 0))
     ]
@@ -124,7 +124,7 @@ resource "aws_default_network_acl" "this" {
   subnet_ids = [
     for key in local.subnets_without_custom_nacl :
     module.subnet[key].id
-    if startswith(key, "${each.key}-")  # filters only subnets for this VPC
+    if startswith(key, "${each.key}-") # filters only subnets for this VPC
   ]
   egress {
     action          = "allow"
@@ -210,7 +210,7 @@ module "route-table" {
 resource "aws_default_route_table" "this" {
   for_each = var.vpc_parameters
 
-  default_route_table_id = module.vpc[each.key].default_route_table_id # aws_vpc.example.default_route_table_id
+  default_route_table_id = module.vpc[each.key].default_route_table_id
 
   route = []
 
@@ -231,7 +231,6 @@ locals {
             vpc_id            = module.vpc[vpc_key].vpc_id
             cidr_block        = lookup(subnet_values, "cidr_block", null)
             availability_zone = "${data.aws_region.current.region}${subnet_values.az}"
-            #availability_zone_id = ## if zone name fails, check regions
             ## Configurations
             enable_dns64                                   = lookup(subnet_values, "enable_dns64", false)
             enable_resource_name_dns_aaaa_record_on_launch = lookup(subnet_values, "enable_resource_name_dns_aaaa_record_on_launch", false)
@@ -250,9 +249,8 @@ locals {
             customer_owned_ipv4_pool        = lookup(subnet_values, "customer_owned_ipv4_pool", null)
             outpost_arn                     = lookup(subnet_values, "outpost_arn", null)
 
-            route_table = lookup(subnet_values, "route_table", "") != "" ? module.route-table["${vpc_key}-${subnet_values.route_table}"].id : ""                                            #module.route-table[subnet_values.route_table].id #"${local.custom_common_name[vpc_key]}-${subnet_values.route_table}" : "${vpc_key}-default"
+            route_table = lookup(subnet_values, "route_table", "") != "" ? module.route-table["${vpc_key}-${subnet_values.route_table}"].id : ""
             network_acl = lookup(subnet_values, "network_acl", "") != "" ? module.network-acl["${vpc_key}-${subnet_values.network_acl}"].id : ""
-             # aws_default_network_acl.this["${vpc_key}"].id #"${local.custom_common_name[vpc_key]}-${subnet_values.network_acl}" : "${vpc_key}-default"
 
             tags = lookup(subnet_values, "tags", merge(local.common_tags, { Name = "${local.custom_common_name[vpc_key]}-${subnet_group_name}-${subnet_name}" }))
 

@@ -61,7 +61,7 @@ module "wrapper_base" {
   vpc_parameters = {
     vpc = {
       # VPC with EC2-NAT
-      "" = { 
+      "" = {
         vpc_cidr = "10.130.0.0/16"
         internet_gateway = {
           "" = {}
@@ -116,24 +116,24 @@ module "wrapper_base" {
           }
           "public" = {
             "${data.aws_region.current.region}a" = {
-              cidr_block  = cidrsubnet("10.130.0.0/16", 4, 3)
-              az          = "a"
-              route_table = "public"
-              network_acl = ""
+              cidr_block              = cidrsubnet("10.130.0.0/16", 4, 3)
+              az                      = "a"
+              route_table             = "public"
+              network_acl             = ""
               map_public_ip_on_launch = true
             }
             "${data.aws_region.current.region}b" = {
-              cidr_block  = cidrsubnet("10.130.0.0/16", 4, 4)
-              az          = "b"
-              route_table = "public"
-              network_acl = ""
+              cidr_block              = cidrsubnet("10.130.0.0/16", 4, 4)
+              az                      = "b"
+              route_table             = "public"
+              network_acl             = ""
               map_public_ip_on_launch = true
             }
             "${data.aws_region.current.region}c" = {
-              cidr_block  = cidrsubnet("10.130.0.0/16", 4, 5)
-              az          = "c"
-              route_table = "public"
-              network_acl = ""
+              cidr_block              = cidrsubnet("10.130.0.0/16", 4, 5)
+              az                      = "c"
+              route_table             = "public"
+              network_acl             = ""
               map_public_ip_on_launch = true
             }
           }
@@ -514,7 +514,7 @@ moved {
 ## if using Elastic IP with the EC2-NAT
 moved {
   from = module.wrapper_base.module.wrapper_vpc.module.vpc-ec2-nat-gateway.aws_eip.this[0]
-  to = module.wrapper_base.module.wrapper_vpc.module.nat-gateway["-natgw"].module.vpc-ec2-nat-gateway[0].aws_eip.this[0]
+  to   = module.wrapper_base.module.wrapper_vpc.module.nat-gateway["-natgw"].module.vpc-ec2-nat-gateway[0].aws_eip.this[0]
 }
 
 moved {

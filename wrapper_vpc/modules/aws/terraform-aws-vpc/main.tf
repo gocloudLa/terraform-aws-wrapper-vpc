@@ -43,10 +43,10 @@ resource "aws_default_security_group" "default" {
 
   ingress {
     cidr_blocks = ["0.0.0.0/0"]
-    protocol  = -1
-    self      = false
-    from_port = 0
-    to_port   = 0
+    protocol    = -1
+    self        = false
+    from_port   = 0
+    to_port     = 0
   }
 
   egress {
@@ -56,7 +56,7 @@ resource "aws_default_security_group" "default" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = merge(var.tags,{ Name = ("${var.tags.Name}-default" ) } )
+  tags = merge(var.tags, { Name = ("${var.tags.Name}-default") })
 }
 
 ################################################################################
