@@ -193,15 +193,15 @@ module "wrapper_base" {
           }
         }
       }
-      
-      # ## VPC with AWS-NAT
+      ## VPC with AWS-NAT
       # "" = { 
       #   vpc_cidr = "10.130.0.0/16"
       #   internet_gateway = {
-      #     "00-igw" = {}
+      #     "" = {}
       #   }
       #   nat_gateway = {
-      #     "natgw" = {
+      #     ## Depends on the subnet used in the NAT
+      #     "us-east-1a" = {
       #       subnet = "public-${data.aws_region.current.region}a"
       #       kind   = "aws" # OPCION AWS
       #       # nat_parameters = {
@@ -215,14 +215,14 @@ module "wrapper_base" {
       #       routes = {
       #       }
       #       default_route = {
-      #         nat_gateway = "natgw"
+      #         nat_gateway = "us-east-1a"
       #       }
       #     }
       #     "public" = {
       #       routes = {
       #       }
       #       default_route = {
-      #         gateway = "00-igw"
+      #         gateway = ""
       #       }
       #     }
       #   }
@@ -254,18 +254,21 @@ module "wrapper_base" {
       #         az          = "a"
       #         route_table = "public"
       #         network_acl = ""
+      #         map_public_ip_on_launch = true
       #       }
       #       "${data.aws_region.current.region}b" = {
       #         cidr_block  = cidrsubnet("10.130.0.0/16", 4, 4)
       #         az          = "b"
       #         route_table = "public"
       #         network_acl = ""
+      #         map_public_ip_on_launch = true
       #       }
       #       "${data.aws_region.current.region}c" = {
       #         cidr_block  = cidrsubnet("10.130.0.0/16", 4, 5)
       #         az          = "c"
       #         route_table = "public"
       #         network_acl = ""
+      #         map_public_ip_on_launch = true
       #       }
       #     }
       #     "db" = {
@@ -482,12 +485,6 @@ moved {
   to   = module.wrapper_base.module.wrapper_vpc.module.vpc[""].aws_default_security_group.default
 }
 
-# # Default NACL-Subnet Association
-# moved {
-#   from = 
-#   to = 
-# }
-
 # VPC Endpoints
 moved {
   from = module.wrapper_base.module.wrapper_vpc.module.vpc-endpoint.aws_vpc_endpoint.this["s3"]
@@ -502,15 +499,15 @@ moved {
 # # if using AWS NAT-GW
 # moved {
 #   from = module.wrapper_base.module.wrapper_vpc.module.vpc.aws_route.private_nat_gateway[0]
-#   to   = module.wrapper_base.module.wrapper_vpc.module.route-association["private"].aws_route.default[0]
+#   to   = module.wrapper_base.module.wrapper_vpc.module.route-association["-private"].aws_route.default[0]
 # }
 # moved {
 #   from = module.wrapper_base.module.wrapper_vpc.module.vpc.aws_eip.nat[0]
-#   to   = module.wrapper_base.module.wrapper_vpc.module.nat-gateway["-natgw"].aws_eip.this[0]
+#   to   = module.wrapper_base.module.wrapper_vpc.module.nat-gateway["-us-east-1a"].aws_eip.this[0]
 # }
 # moved {
 #   from = module.wrapper_base.module.wrapper_vpc.module.vpc.aws_nat_gateway.this[0]
-#   to   = module.wrapper_base.module.wrapper_vpc.module.nat-gateway["-natgw"].aws_nat_gateway.this[0]
+#   to   = module.wrapper_base.module.wrapper_vpc.module.nat-gateway["-us-east-1a"].aws_nat_gateway.this[0]
 # }
 
 # EC2 Nat-Gateway
