@@ -117,9 +117,9 @@ module "wrapper_base" {
           remote_ipv4_network_cidr = "10.22.0.0/16" //cidr block que se comparte de nuestra vpc
 
           # si se usa un ruteo estatico para maquinas especificas usar
-          static_routes_only = true
-          static_routes_destinations = ["10.1.8.30/32","10.1.7.140/32" ]
-          route_table_names = ["gcl-lab-00-private", "gcl-lab-00-public"]
+          static_routes_only         = true
+          static_routes_destinations = ["10.1.8.30/32", "10.1.7.140/32"]
+          route_table_names          = ["gcl-lab-00-private", "gcl-lab-00-public"]
 
           tunnel1_preshared_key                = "12345678" # local.secrets.vpn_preshared_key //if the preshared key is stored in a parameter or secret
           tunnel1_ike_versions                 = ["ikev2"]

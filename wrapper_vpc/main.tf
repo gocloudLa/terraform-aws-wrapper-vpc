@@ -286,7 +286,7 @@ module "subnet" {
   customer_owned_ipv4_pool                       = each.value.customer_owned_ipv4_pool
   outpost_arn                                    = each.value.outpost_arn
   route_table                                    = each.value.route_table
-  attach_nacl                                    = each.value.attach_nacl 
+  attach_nacl                                    = each.value.attach_nacl
   network_acl                                    = each.value.network_acl
   tags                                           = each.value.tags
 }
