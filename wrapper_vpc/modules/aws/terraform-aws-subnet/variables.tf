@@ -101,6 +101,11 @@ variable "route_table" {
   type        = string
 }
 
+variable "attach_nacl" {
+  description = "Definition if the nacl must be attached."
+  type        = bool
+}
+
 variable "network_acl" {
   description = "The Network ACL ID."
   type        = string

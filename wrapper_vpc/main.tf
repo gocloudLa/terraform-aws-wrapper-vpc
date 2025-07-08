@@ -250,6 +250,7 @@ locals {
             outpost_arn                     = lookup(subnet_values, "outpost_arn", null)
 
             route_table = lookup(subnet_values, "route_table", "") != "" ? module.route-table["${vpc_key}-${subnet_values.route_table}"].id : ""
+            attach_nacl = lookup(subnet_values, "network_acl", "") != "" ? true : false
             network_acl = lookup(subnet_values, "network_acl", "") != "" ? module.network-acl["${vpc_key}-${subnet_values.network_acl}"].id : ""
 
             tags = lookup(subnet_values, "tags", merge(local.common_tags, { Name = "${local.custom_common_name[vpc_key]}-${subnet_group_name}-${subnet_name}" }))
@@ -285,6 +286,7 @@ module "subnet" {
   customer_owned_ipv4_pool                       = each.value.customer_owned_ipv4_pool
   outpost_arn                                    = each.value.outpost_arn
   route_table                                    = each.value.route_table
+  attach_nacl                                    = each.value.attach_nacl 
   network_acl                                    = each.value.network_acl
   tags                                           = each.value.tags
 }
