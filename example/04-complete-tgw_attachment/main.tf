@@ -22,7 +22,7 @@ module "wrapper_base" {
         }
         nat_gateway = {
           "natgw" = {
-            subnet = "public-${data.aws_region.current.name}a"
+            subnet = "public-${data.aws_region.current.region}a"
             kind   = "aws" # OPCION AWS
           }
         }
@@ -52,19 +52,19 @@ module "wrapper_base" {
         }
         subnets = {
           "private" = {
-            "${data.aws_region.current.name}a" = {
+            "${data.aws_region.current.region}a" = {
               cidr_block  = cidrsubnet("10.17.0.0/16", 4, 0)
               az          = "a"
               route_table = "private"
               network_acl = "private"
             }
-            "${data.aws_region.current.name}b" = {
+            "${data.aws_region.current.region}b" = {
               cidr_block  = cidrsubnet("10.17.0.0/16", 4, 1)
               az          = "b"
               route_table = "private"
               network_acl = "private"
             }
-            "${data.aws_region.current.name}c" = {
+            "${data.aws_region.current.region}c" = {
               cidr_block  = cidrsubnet("10.17.0.0/16", 4, 2)
               az          = "c"
               route_table = "private"
@@ -72,19 +72,19 @@ module "wrapper_base" {
             }
           }
           "public" = {
-            "${data.aws_region.current.name}a" = {
+            "${data.aws_region.current.region}a" = {
               cidr_block  = cidrsubnet("10.17.0.0/16", 4, 3)
               az          = "a"
               route_table = "public"
               network_acl = "public"
             }
-            "${data.aws_region.current.name}b" = {
+            "${data.aws_region.current.region}b" = {
               cidr_block  = cidrsubnet("10.17.0.0/16", 4, 4)
               az          = "b"
               route_table = "public"
               network_acl = "public"
             }
-            "${data.aws_region.current.name}c" = {
+            "${data.aws_region.current.region}c" = {
               cidr_block  = cidrsubnet("10.17.0.0/16", 4, 5)
               az          = "c"
               route_table = "public"
