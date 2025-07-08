@@ -1,4 +1,4 @@
-module "wrapper_vpc" {
+module "wrapper_base" {
   source = "../../"
 
   metadata = local.metadata
@@ -12,7 +12,7 @@ module "wrapper_vpc" {
       #   }
       #   nat_gateway = {
       #     "natgw" = {
-      #       subnet = "public-${data.aws_region.current.name}a"
+      #       subnet = "public-${data.aws_region.current.region}a"
       #       kind   = "ec2" # OPCION AWS
       #       nat_parameters = {
       #         ec2_nat_gateway_attach_eip = true,
@@ -39,19 +39,19 @@ module "wrapper_vpc" {
       #   network_acl = {}
       #   subnets = {
       #     "private" = {
-      #       "${data.aws_region.current.name}a" = {
+      #       "${data.aws_region.current.region}a" = {
       #         cidr_block  = cidrsubnet("10.130.0.0/16", 4, 0)
       #         az          = "a"
       #         route_table = "00-private"
       #         network_acl = ""
       #       }
-      #       "${data.aws_region.current.name}b" = {
+      #       "${data.aws_region.current.region}b" = {
       #         cidr_block  = cidrsubnet("10.130.0.0/16", 4, 1)
       #         az          = "b"
       #         route_table = "00-private"
       #         network_acl = ""
       #       }
-      #       "${data.aws_region.current.name}c" = {
+      #       "${data.aws_region.current.region}c" = {
       #         cidr_block  = cidrsubnet("10.130.0.0/16", 4, 2)
       #         az          = "c"
       #         route_table = "00-private"
@@ -59,19 +59,19 @@ module "wrapper_vpc" {
       #       }
       #     }
       #     "public" = {
-      #       "${data.aws_region.current.name}a" = {
+      #       "${data.aws_region.current.region}a" = {
       #         cidr_block  = cidrsubnet("10.130.0.0/16", 4, 3)
       #         az          = "a"
       #         route_table = "00-public"
       #         network_acl = ""
       #       }
-      #       "${data.aws_region.current.name}b" = {
+      #       "${data.aws_region.current.region}b" = {
       #         cidr_block  = cidrsubnet("10.130.0.0/16", 4, 4)
       #         az          = "b"
       #         route_table = "00-public"
       #         network_acl = ""
       #       }
-      #       "${data.aws_region.current.name}c" = {
+      #       "${data.aws_region.current.region}c" = {
       #         cidr_block  = cidrsubnet("10.130.0.0/16", 4, 5)
       #         az          = "c"
       #         route_table = "00-public"
@@ -79,19 +79,19 @@ module "wrapper_vpc" {
       #       }
       #     }
       #     "db" = {
-      #       "${data.aws_region.current.name}a" = {
+      #       "${data.aws_region.current.region}a" = {
       #         cidr_block  = cidrsubnet("10.130.0.0/16", 4, 6)
       #         az          = "a"
       #         route_table = "00-private"
       #         network_acl = ""
       #       }
-      #       "${data.aws_region.current.name}b" = {
+      #       "${data.aws_region.current.region}b" = {
       #         cidr_block  = cidrsubnet("10.130.0.0/16", 4, 7)
       #         az          = "b"
       #         route_table = "00-private"
       #         network_acl = ""
       #       }
-      #       "${data.aws_region.current.name}c" = {
+      #       "${data.aws_region.current.region}c" = {
       #         cidr_block  = cidrsubnet("10.130.0.0/16", 4, 8)
       #         az          = "c"
       #         route_table = "00-private"
@@ -99,19 +99,19 @@ module "wrapper_vpc" {
       #       }
       #     }
       #     "elasticache" = {
-      #       "${data.aws_region.current.name}a" = {
+      #       "${data.aws_region.current.region}a" = {
       #         cidr_block  = cidrsubnet("10.130.0.0/16", 4, 9)
       #         az          = "a"
       #         route_table = "00-private"
       #         network_acl = ""
       #       }
-      #       "${data.aws_region.current.name}b" = {
+      #       "${data.aws_region.current.region}b" = {
       #         cidr_block  = cidrsubnet("10.130.0.0/16", 4, 10)
       #         az          = "b"
       #         route_table = "00-private"
       #         network_acl = ""
       #       }
-      #       "${data.aws_region.current.name}c" = {
+      #       "${data.aws_region.current.region}c" = {
       #         cidr_block  = cidrsubnet("10.130.0.0/16", 4, 11)
       #         az          = "c"
       #         route_table = "00-private"
@@ -141,7 +141,7 @@ module "wrapper_vpc" {
         }
         nat_gateway = {
           "natgw" = {
-            subnet = "public-${data.aws_region.current.name}a"
+            subnet = "public-${data.aws_region.current.region}a"
             kind   = "aws" # OPCION AWS
             # nat_parameters = {
             #   ec2_nat_gateway_attach_eip = true,
@@ -168,19 +168,19 @@ module "wrapper_vpc" {
         network_acl = {}
         subnets = {
           "private" = {
-            "${data.aws_region.current.name}a" = {
+            "${data.aws_region.current.region}a" = {
               cidr_block  = cidrsubnet("10.130.0.0/16", 4, 0)
               az          = "a"
               route_table = "00-private"
               network_acl = ""
             }
-            "${data.aws_region.current.name}b" = {
+            "${data.aws_region.current.region}b" = {
               cidr_block  = cidrsubnet("10.130.0.0/16", 4, 1)
               az          = "b"
               route_table = "00-private"
               network_acl = ""
             }
-            "${data.aws_region.current.name}c" = {
+            "${data.aws_region.current.region}c" = {
               cidr_block  = cidrsubnet("10.130.0.0/16", 4, 2)
               az          = "c"
               route_table = "00-private"
@@ -188,19 +188,19 @@ module "wrapper_vpc" {
             }
           }
           "public" = {
-            "${data.aws_region.current.name}a" = {
+            "${data.aws_region.current.region}a" = {
               cidr_block  = cidrsubnet("10.130.0.0/16", 4, 3)
               az          = "a"
               route_table = "00-public"
               network_acl = ""
             }
-            "${data.aws_region.current.name}b" = {
+            "${data.aws_region.current.region}b" = {
               cidr_block  = cidrsubnet("10.130.0.0/16", 4, 4)
               az          = "b"
               route_table = "00-public"
               network_acl = ""
             }
-            "${data.aws_region.current.name}c" = {
+            "${data.aws_region.current.region}c" = {
               cidr_block  = cidrsubnet("10.130.0.0/16", 4, 5)
               az          = "c"
               route_table = "00-public"
@@ -208,19 +208,19 @@ module "wrapper_vpc" {
             }
           }
           "db" = {
-            "${data.aws_region.current.name}a" = {
+            "${data.aws_region.current.region}a" = {
               cidr_block  = cidrsubnet("10.130.0.0/16", 4, 6)
               az          = "a"
               route_table = "00-private"
               network_acl = ""
             }
-            "${data.aws_region.current.name}b" = {
+            "${data.aws_region.current.region}b" = {
               cidr_block  = cidrsubnet("10.130.0.0/16", 4, 7)
               az          = "b"
               route_table = "00-private"
               network_acl = ""
             }
-            "${data.aws_region.current.name}c" = {
+            "${data.aws_region.current.region}c" = {
               cidr_block  = cidrsubnet("10.130.0.0/16", 4, 8)
               az          = "c"
               route_table = "00-private"
@@ -228,19 +228,19 @@ module "wrapper_vpc" {
             }
           }
           "elasticache" = {
-            "${data.aws_region.current.name}a" = {
+            "${data.aws_region.current.region}a" = {
               cidr_block  = cidrsubnet("10.130.0.0/16", 4, 9)
               az          = "a"
               route_table = "00-private"
               network_acl = ""
             }
-            "${data.aws_region.current.name}b" = {
+            "${data.aws_region.current.region}b" = {
               cidr_block  = cidrsubnet("10.130.0.0/16", 4, 10)
               az          = "b"
               route_table = "00-private"
               network_acl = ""
             }
-            "${data.aws_region.current.name}c" = {
+            "${data.aws_region.current.region}c" = {
               cidr_block  = cidrsubnet("10.130.0.0/16", 4, 11)
               az          = "c"
               route_table = "00-private"
