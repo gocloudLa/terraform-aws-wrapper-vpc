@@ -4,11 +4,11 @@ locals {
     aws_region  = "us-east-1"
     environment = "prd"
 
-    public_domain  = "rext.cloud"
-    private_domain = "rext"
+    public_domain  = "democorp.cloud"
+    private_domain = "democorp"
 
     key = {
-      company = "rxt"
+      company = "dmc"
       region  = "use1"
       env     = "prd"
     }
