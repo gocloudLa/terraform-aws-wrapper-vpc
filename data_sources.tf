@@ -1,0 +1,38 @@
+data "aws_caller_identity" "current" {}
+
+/*----------------------------------------------------------------------*/
+/* Network | datasources                                                */
+/*----------------------------------------------------------------------*/
+
+data "aws_security_group" "default" {
+  count = lookup(var.vpc_parameters, "create_vpc", true) ? 1 : 0
+
+  name   = "default"
+  vpc_id = module.vpc.vpc_id
+}
+
+data "aws_iam_policy_document" "dynamodb_endpoint_policy" {
+  statement {
+    effect    = "Allow"
+    actions   = ["dynamodb:*"]
+    resources = ["*"]
+
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+  }
+}
+
+data "aws_iam_policy_document" "s3_endpoint_policy" {
+  statement {
+    effect    = "Allow"
+    actions   = ["s3:*"]
+    resources = ["*"]
+
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+  }
+}
