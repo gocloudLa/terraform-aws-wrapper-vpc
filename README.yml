@@ -52,74 +52,105 @@ quick_start: |
           "protocol"    = "-1"
         }
       ]
-      enable_nat_gateway         = false
-      enable_ec2_nat_gateway     = true
-      ec2_nat_gateway_attach_eip = true
+      enable_nat_gateway         = true
     }
   ```
-features: []
+features:
+  - icon: 🖥️
+    title: Custom EC2 NAT Gateway
+    short_description: Deploy cost-effective EC2-based NAT Gateway instead of managed NAT Gateway
+    long_description: |
+      Configure a custom EC2 instance as NAT Gateway for private subnet internet access, providing a cost-effective alternative to AWS managed NAT Gateway service.
+    examples:
+      - title: EC2 NAT Gateway Configuration
+        code: |
+          ```hcl
+          vpc_parameters = {
+            vpc_cidr = local.vpc_cidr
+            private_subnets = [
+              cidrsubnet(local.vpc_cidr, 4, 0),
+              cidrsubnet(local.vpc_cidr, 4, 1),
+              cidrsubnet(local.vpc_cidr, 4, 2)
+            ]
+            public_subnets = [
+              cidrsubnet(local.vpc_cidr, 4, 3),
+              cidrsubnet(local.vpc_cidr, 4, 4),
+              cidrsubnet(local.vpc_cidr, 4, 5)
+            ]
+            
+            # Disable managed NAT Gateway
+            enable_nat_gateway = false
+            
+            # Enable EC2-based NAT Gateway
+            enable_ec2_nat_gateway = true
+            ec2_nat_gateway_attach_eip = true
+          }
+          ```
 important_notes: ""
 input_table: |
-  | private_subnets | List of private subnets for the VPC. | `list` | `[]` | no |
-  | public_subnets | List of public subnets for the VPC. | `list` | `[]` | no |
-  | database_subnets | List of database subnets for the VPC. | `list` | `[]` | no |
-  | elasticache_subnets | List of Elasticache subnets for the VPC. | `list` | `[]` | no |
-  | enable_ipv6 | Enable IPv6 for the VPC. | `bool` | `false` | no |
-  | manage_default_vpc | Manage the default VPC. | `bool` | `false` | no |
+  | create_database_internet_gateway_route | Create an Internet Gateway route for the database subnet. | `bool` | `false` | no |
+  | create_database_nat_gateway_route | Create a NAT Gateway route for the database subnet. | `bool` | `false` | no |
+  | create_elasticache_subnet_group | Create a subnet group for Elasticache. | `bool` | `false` | no |
+  | create_elasticache_subnet_route_table | Create a route table for the Elasticache subnet. | `bool` | `false` | no |
+  | create_flow_log_cloudwatch_iam_role | Create an IAM role for CloudWatch Flow Logs. | `bool` | `false` | no |
+  | create_flow_log_cloudwatch_log_group | Create a CloudWatch log group for Flow Logs. | `bool` | `false` | no |
   | create_igw | Create an Internet Gateway for the VPC. | `bool` | `true` | no |
-  | enable_dns_hostnames | Enable DNS hostnames in the VPC. | `bool` | `true` | no |
-  | enable_dns_support | Enable DNS support in the VPC. | `bool` | `true` | no |
-  | map_public_ip_on_launch | Automatically assign a public IP on instance launch. | `bool` | `true` | no |
-  | enable_nat_gateway | Enable the NAT Gateway for the VPC. | `bool` | `false` | no |
-  | single_nat_gateway | Create a single NAT Gateway. | `bool` | `true` | no |
-  | one_nat_gateway_per_az | Create one NAT Gateway per Availability Zone. | `bool` | `false` | no |
-  | reuse_nat_ips | Should be true if you don't want EIPs to be created for your NAT Gateways. | `bool` | `false` | no |
-  | external_nat_ip_ids | List of EIP IDs to be assigned to the NAT Gateways. | `list` | `[]` | no |
   | create_private_nat_gateway_route | Controls if a NAT gateway route should be created to give internet access to the private subnets. | `bool` | `true` | no |
-  | vpc_block_public_access_options | A map of VPC block public access options. | `null` | `{}` | no |
-  | vpc_block_public_access_exclusions | A map of VPC block public access exclusions. | `null` | `{}` | no |
-  | manage_default_network_acl | Manage the default network ACL for the VPC. | `bool` | `true` | no |
+  | database_subnet_group_name | Name for the database subnet group. | `string` | `""` | no |
+  | database_subnets | List of database subnets for the VPC. | `list` | `[]` | no |
   | default_network_acl_tags | Tags for the default network ACL. | `null` | `{ Name = "${local.common_name}-default" }` | no |
-  | public_dedicated_network_acl | Create a dedicated network ACL for public subnets. | `bool` | `false` | no |
-  | public_inbound_acl_rules | Inbound rules for public subnets' network ACL. | `list` | `[]` | no |
-  | public_outbound_acl_rules | Outbound rules for public subnets' network ACL. | `list` | `[]` | no |
-  | private_dedicated_network_acl | Create a dedicated network ACL for private subnets. | `bool` | `false` | no |
-  | private_inbound_acl_rules | Inbound rules for private subnets' network ACL. | `list` | `[]` | no |
-  | private_outbound_acl_rules | Outbound rules for private subnets' network ACL. | `list` | `[]` | no |
-  | manage_default_route_table | Manage the default route table for the VPC. | `bool` | `true` | no |
   | default_route_table_propagating_vgws | List of VGWs to propagate in the default route table. | `list` | `[]` | no |
   | default_route_table_routes | Custom routes for the default route table. | `list` | `[]` | no |
   | default_route_table_tags | Tags for the default route table. | `null` | `{ Name = "${local.common_name}-default" }` | no |
-  | manage_default_security_group | Manage the default security group for the VPC. | `bool` | `true` | no |
-  | default_security_group_ingress | Ingress rules for the default security group. | `list` | `[]` | no |
   | default_security_group_egress | Egress rules for the default security group. | `list` | `[]` | no |
+  | default_security_group_ingress | Ingress rules for the default security group. | `list` | `[]` | no |
   | default_security_group_tags | Tags for the default security group. | `null` | `{ Name = "${local.common_name}-default" }` | no |
-  | enable_vpn_gateway | Enable a VPN Gateway for the VPC. | `bool` | `false` | no |
-  | vpn_gateway_id | The ID of an existing VPN Gateway to attach to the VPC. | `string` | `""` | no |
-  | vpn_gateway_az | The Availability Zone for the VPN Gateway. | `string` | `null` | no |
-  | propagate_private_route_tables_vgw | Propagate the VPN Gateway to private route tables. | `bool` | `false` | no |
-  | propagate_public_route_tables_vgw | Propagate the VPN Gateway to public route tables. | `bool` | `false` | no |
-  | enable_dhcp_options | Enable custom DHCP options for the VPC. | `bool` | `false` | no |
   | dhcp_options_domain_name | Domain name for DHCP options. | `string` | `""` | no |
   | dhcp_options_domain_name_servers | List of domain name servers for DHCP options. | `list` | `[]` | no |
-  | dhcp_options_ntp_servers | List of NTP servers for DHCP options. | `list` | `[]` | no |
   | dhcp_options_netbios_name_servers | List of NetBIOS name servers for DHCP options. | `list` | `[]` | no |
   | dhcp_options_netbios_node_type | NetBIOS node type for DHCP options. | `string` | `""` | no |
-  | enable_public_redshift | Enable public accessibility for Redshift. | `bool` | `false` | no |
-  | enable_flow_log | Enable VPC Flow Logs. | `bool` | `false` | no |
-  | create_flow_log_cloudwatch_iam_role | Create an IAM role for CloudWatch Flow Logs. | `bool` | `false` | no |
-  | create_flow_log_cloudwatch_log_group | Create a CloudWatch log group for Flow Logs. | `bool` | `false` | no |
-  | vpc_flow_log_permissions_boundary | Permissions boundary for the VPC Flow Log role. | `string` | `null` | no |
-  | flow_log_traffic_type | Type of traffic to capture in the Flow Log (ALL, ACCEPT, REJECT). | `string` | `""` | no |
-  | flow_log_destination_type | Destination type for Flow Logs (cloud-watch-logs or s3). | `string` | `""` | no |
-  | flow_log_log_format | Log format for Flow Logs. | `string` | `null` | no |
-  | flow_log_destination_arn | ARN of the destination for Flow Logs. | `string` | `""` | no |
-  | flow_log_cloudwatch_iam_role_conditions | Additional conditions of the CloudWatch role assumption policy. | `list` | `[]` | no |
-  | create_elasticache_subnet_group | Create a subnet group for Elasticache. | `bool` | `false` | no |
+  | dhcp_options_ntp_servers | List of NTP servers for DHCP options. | `list` | `[]` | no |
+  | ec2_nat_gateway_attach_eip | Attach an Elastic IP to the EC2 NAT Gateway. | `bool` | `false` | no |
+  | elasticache_dedicated_network_acl | Create a dedicated network ACL for Elasticache subnets. | `bool` | `false` | no |
   | elasticache_subnet_group_name | Name for the Elasticache subnet group. | `string` | `null` | no |
   | elasticache_subnet_group_tags | Tags for the Elasticache subnet group. | `map` | `{}` | no |
-  | create_elasticache_subnet_route_table | Create a route table for the Elasticache subnet. | `bool` | `false` | no |
-  | create_database_internet_gateway_route | Create an Internet Gateway route for the database subnet. | `bool` | `false` | no |
-  | create_database_nat_gateway_route | Create a NAT Gateway route for the database subnet. | `bool` | `false` | no |
-  | database_subnet_group_name | Name for the database subnet group. | `string` | `""` | no |
-  | attach_eip | Attach an Elastic IP to the NAT Gateway. | `bool` | `false` | no |
+  | elasticache_subnets | List of Elasticache subnets for the VPC. | `list` | `[]` | no |
+  | enable_dhcp_options | Enable custom DHCP options for the VPC. | `bool` | `false` | no |
+  | enable_dns_hostnames | Enable DNS hostnames in the VPC. | `bool` | `true` | no |
+  | enable_dns_support | Enable DNS support in the VPC. | `bool` | `true` | no |
+  | enable_ec2_nat_gateway | Enable EC2-based NAT Gateway instead of managed NAT Gateway. | `bool` | `false` | no |
+  | enable_flow_log | Enable VPC Flow Logs. | `bool` | `false` | no |
+  | enable_ipv6 | Enable IPv6 for the VPC. | `bool` | `false` | no |
+  | enable_nat_gateway | Enable the NAT Gateway for the VPC. | `bool` | `false` | no |
+  | enable_public_redshift | Enable public accessibility for Redshift. | `bool` | `false` | no |
+  | enable_vpn_gateway | Enable a VPN Gateway for the VPC. | `bool` | `false` | no |
+  | external_nat_ip_ids | List of EIP IDs to be assigned to the NAT Gateways. | `list` | `[]` | no |
+  | flow_log_cloudwatch_iam_role_conditions | Additional conditions of the CloudWatch role assumption policy. | `list` | `[]` | no |
+  | flow_log_destination_arn | ARN of the destination for Flow Logs. | `string` | `""` | no |
+  | flow_log_destination_type | Destination type for Flow Logs (cloud-watch-logs or s3). | `string` | `""` | no |
+  | flow_log_log_format | Log format for Flow Logs. | `string` | `null` | no |
+  | flow_log_traffic_type | Type of traffic to capture in the Flow Log (ALL, ACCEPT, REJECT). | `string` | `""` | no |
+  | manage_default_network_acl | Manage the default network ACL for the VPC. | `bool` | `true` | no |
+  | manage_default_route_table | Manage the default route table for the VPC. | `bool` | `true` | no |
+  | manage_default_security_group | Manage the default security group for the VPC. | `bool` | `true` | no |
+  | manage_default_vpc | Manage the default VPC. | `bool` | `false` | no |
+  | map_public_ip_on_launch | Automatically assign a public IP on instance launch. | `bool` | `true` | no |
+  | one_nat_gateway_per_az | Create one NAT Gateway per Availability Zone. | `bool` | `false` | no |
+  | private_dedicated_network_acl | Create a dedicated network ACL for private subnets. | `bool` | `false` | no |
+  | private_inbound_acl_rules | Inbound rules for private subnets' network ACL. | `list` | `[]` | no |
+  | private_outbound_acl_rules | Outbound rules for private subnets' network ACL. | `list` | `[]` | no |
+  | private_subnets | List of private subnets for the VPC. | `list` | `[]` | no |
+  | propagate_private_route_tables_vgw | Propagate the VPN Gateway to private route tables. | `bool` | `false` | no |
+  | propagate_public_route_tables_vgw | Propagate the VPN Gateway to public route tables. | `bool` | `false` | no |
+  | public_dedicated_network_acl | Create a dedicated network ACL for public subnets. | `bool` | `false` | no |
+  | public_inbound_acl_rules | Inbound rules for public subnets' network ACL. | `list` | `[]` | no |
+  | public_outbound_acl_rules | Outbound rules for public subnets' network ACL. | `list` | `[]` | no |
+  | public_subnets | List of public subnets for the VPC. | `list` | `[]` | no |
+  | reuse_nat_ips | Should be true if you don't want EIPs to be created for your NAT Gateways. | `bool` | `false` | no |
+  | single_nat_gateway | Create a single NAT Gateway. | `bool` | `true` | no |
+  | vpc_block_public_access_exclusions | A map of VPC block public access exclusions. | `null` | `{}` | no |
+  | vpc_block_public_access_options | A map of VPC block public access options. | `null` | `{}` | no |
+  | vpc_cidr | The CIDR block for the VPC. | `string` | `""` | no |
+  | vpc_flow_log_permissions_boundary | Permissions boundary for the VPC Flow Log role. | `string` | `null` | no |
+  | vpn_gateway_az | The Availability Zone for the VPN Gateway. | `string` | `null` | no |
+  | vpn_gateway_id | The ID of an existing VPN Gateway to attach to the VPC. | `string` | `""` | no |
