@@ -119,7 +119,7 @@ module "vpc" {
   database_outbound_acl_rules            = lookup(var.vpc_parameters, "database_outbound_acl_rules", [])
   database_acl_tags                      = lookup(var.vpc_parameters, "database_acl_tags", {})
 
-  tags = local.common_tags
+  tags = merge(local.common_tags, try(var.vpc_parameters.tags, var.vpc_defaults.tags, null))
 }
 
 
@@ -150,7 +150,7 @@ module "vpc-endpoint" {
     },
   }
 
-  tags = local.common_tags
+  tags = merge(local.common_tags, try(var.vpc_parameters.tags, var.vpc_defaults.tags, null))
 }
 
 module "vpc-ec2-nat-gateway" {
@@ -171,5 +171,5 @@ module "vpc-ec2-nat-gateway" {
 
   attach_eip = lookup(var.vpc_parameters, "ec2_nat_gateway_attach_eip", false)
 
-  tags = local.common_tags
+  tags = merge(local.common_tags, try(var.vpc_parameters.tags, var.vpc_defaults.tags, null))
 }

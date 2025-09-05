@@ -154,3 +154,4 @@ input_table: |
   | vpc_flow_log_permissions_boundary | Permissions boundary for the VPC Flow Log role. | `string` | `null` | no |
   | vpn_gateway_az | The Availability Zone for the VPN Gateway. | `string` | `null` | no |
   | vpn_gateway_id | The ID of an existing VPN Gateway to attach to the VPC. | `string` | `""` | no |
+  | tags | A map of tags to assign to resources. | `map` | `{}` | no |
