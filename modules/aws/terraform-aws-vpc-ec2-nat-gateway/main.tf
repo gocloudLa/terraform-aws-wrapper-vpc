@@ -1,6 +1,6 @@
 module "ec2_instance" {
   source  = "terraform-aws-modules/ec2-instance/aws"
-  version = "6.0.2"
+  version = "6.1.1"
   count   = var.create ? 1 : 0
 
   name                   = var.name
