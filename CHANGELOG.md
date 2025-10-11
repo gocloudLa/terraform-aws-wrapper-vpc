@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/gocloudLa/terraform-aws-wrapper-vpc/compare/v1.0.1...v1.0.2) (2025-10-11)
+
+
+### Bug Fixes
+
+* **deps:** bump terraform-aws-modules/vpc/aws from 6.0.1 to 6.2.0 in the all-terraform-dependencies group across 1 directory ([#5](https://github.com/gocloudLa/terraform-aws-wrapper-vpc/issues/5)) ([113cfa3](https://github.com/gocloudLa/terraform-aws-wrapper-vpc/commit/113cfa3af4f71e8167bc6f809a675b2ac0a4c24b))
+
 ## [1.0.1](https://github.com/gocloudLa/terraform-aws-wrapper-vpc/compare/v1.0.0...v1.0.1) (2025-09-18)
 
 
