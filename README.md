@@ -17,9 +17,9 @@ The Terraform Wrapper for VPC simplifies the configuration of basic Networking s
 ### 🔗 External Modules
 | Name | Version |
 |------|------:|
-| <a href="https://github.com/terraform-aws-modules/terraform-aws-ec2-instance" target="_blank">terraform-aws-modules/ec2-instance/aws</a> | 6.1.1 |
-| <a href="https://github.com/terraform-aws-modules/terraform-aws-security-group" target="_blank">terraform-aws-modules/security-group/aws</a> | 5.3.0 |
-| <a href="https://github.com/terraform-aws-modules/terraform-aws-vpc" target="_blank">terraform-aws-modules/vpc/aws</a> | 6.4.0 |
+| <a href="https://github.com/terraform-aws-modules/terraform-aws-ec2-instance" target="_blank">terraform-aws-modules/ec2-instance/aws</a> | 6.1.4 |
+| <a href="https://github.com/terraform-aws-modules/terraform-aws-security-group" target="_blank">terraform-aws-modules/security-group/aws</a> | 5.3.1 |
+| <a href="https://github.com/terraform-aws-modules/terraform-aws-vpc" target="_blank">terraform-aws-modules/vpc/aws</a> | 6.5.0 |
 
 
 
