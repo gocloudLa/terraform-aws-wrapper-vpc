@@ -1,16 +1,18 @@
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "6.4.0"
+  version = "6.5.1"
 
   create_vpc = lookup(var.vpc_parameters, "create_vpc", true)
 
-  name = local.common_name
-  cidr = lookup(var.vpc_parameters, "vpc_cidr", "")
+  name                  = lookup(var.vpc_parameters, "custom_vpc_name", local.common_name)
+  cidr                  = lookup(var.vpc_parameters, "vpc_cidr", "")
+  secondary_cidr_blocks = lookup(var.vpc_parameters, "secondary_cidr_blocks", [])
 
   azs = ["${local.metadata.aws_region}a", "${local.metadata.aws_region}b", "${local.metadata.aws_region}c"]
 
   private_subnets     = lookup(var.vpc_parameters, "private_subnets", [])
   public_subnets      = lookup(var.vpc_parameters, "public_subnets", [])
+  public_subnet_names = lookup(var.vpc_parameters, "public_subnet_names", [])
   database_subnets    = lookup(var.vpc_parameters, "database_subnets", [])
   elasticache_subnets = lookup(var.vpc_parameters, "elasticache_subnets", [])
 
@@ -19,6 +21,7 @@ module "vpc" {
   manage_default_vpc = lookup(var.vpc_parameters, "manage_default_vpc", false)
 
   create_igw = lookup(var.vpc_parameters, "create_igw", true)
+  igw_tags   = lookup(var.vpc_parameters, "igw_tags", {})
 
   enable_dns_hostnames = lookup(var.vpc_parameters, "enable_dns_hostnames", true)
   enable_dns_support   = lookup(var.vpc_parameters, "enable_dns_support", true)
@@ -31,6 +34,7 @@ module "vpc" {
   one_nat_gateway_per_az = lookup(var.vpc_parameters, "one_nat_gateway_per_az", false)
   reuse_nat_ips          = lookup(var.vpc_parameters, "reuse_nat_ips", false)
   external_nat_ip_ids    = lookup(var.vpc_parameters, "external_nat_ip_ids", [])
+  nat_gateway_tags       = lookup(var.vpc_parameters, "nat_gateway_tags", {})
 
   create_private_nat_gateway_route   = lookup(var.vpc_parameters, "create_private_nat_gateway_route", true)
   vpc_block_public_access_options    = lookup(var.vpc_parameters, "vpc_block_public_access_options", {})
