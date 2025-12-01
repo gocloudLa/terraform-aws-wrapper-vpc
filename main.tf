@@ -24,6 +24,7 @@ module "vpc" {
   create_igw = lookup(var.vpc_parameters, "create_igw", true)
   igw_tags   = lookup(var.vpc_parameters, "igw_tags", {})
 
+  instance_tenancy     = lookup(var.vpc_parameters, "instance_tenancy", "default")
   enable_dns_hostnames = lookup(var.vpc_parameters, "enable_dns_hostnames", true)
   enable_dns_support   = lookup(var.vpc_parameters, "enable_dns_support", true)
 
