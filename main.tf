@@ -10,11 +10,12 @@ module "vpc" {
 
   azs = ["${local.metadata.aws_region}a", "${local.metadata.aws_region}b", "${local.metadata.aws_region}c"]
 
-  private_subnets     = lookup(var.vpc_parameters, "private_subnets", [])
-  public_subnets      = lookup(var.vpc_parameters, "public_subnets", [])
-  public_subnet_names = lookup(var.vpc_parameters, "public_subnet_names", [])
-  database_subnets    = lookup(var.vpc_parameters, "database_subnets", [])
-  elasticache_subnets = lookup(var.vpc_parameters, "elasticache_subnets", [])
+  private_subnets      = lookup(var.vpc_parameters, "private_subnets", [])
+  private_subnet_names = lookup(var.vpc_parameters, "private_subnet_names", [])
+  public_subnets       = lookup(var.vpc_parameters, "public_subnets", [])
+  public_subnet_names  = lookup(var.vpc_parameters, "public_subnet_names", [])
+  database_subnets     = lookup(var.vpc_parameters, "database_subnets", [])
+  elasticache_subnets  = lookup(var.vpc_parameters, "elasticache_subnets", [])
 
   enable_ipv6 = lookup(var.vpc_parameters, "enable_ipv6", false)
 
@@ -56,6 +57,8 @@ module "vpc" {
   default_route_table_propagating_vgws = lookup(var.vpc_parameters, "default_route_table_propagating_vgws", [])
   default_route_table_routes           = lookup(var.vpc_parameters, "default_route_table_routes", [])
   default_route_table_tags             = lookup(var.vpc_parameters, "default_route_table_tags", { Name = "${local.common_name}-default" })
+  public_route_table_tags              = lookup(var.vpc_parameters, "public_route_table_tags", {})
+  private_route_table_tags             = lookup(var.vpc_parameters, "private_route_table_tags", {})
 
 
   # sg_default config
@@ -143,7 +146,7 @@ module "vpc-endpoint" {
       service_type    = "Gateway"
       route_table_ids = try(flatten([module.vpc.intra_route_table_ids, module.vpc.private_route_table_ids, module.vpc.public_route_table_ids]), [])
       policy          = data.aws_iam_policy_document.s3_endpoint_policy.json
-      tags            = { Name = "${local.common_name}-s3-vpc-endpoint" }
+      tags            = lookup(var.vpc_parameters, "vpc_endpoint_s3_tags", { Name = "${local.common_name}-s3-vpc-endpoint" })
     },
     dynamodb = {
       service         = "dynamodb"
