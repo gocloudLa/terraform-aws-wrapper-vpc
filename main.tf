@@ -8,7 +8,7 @@ module "vpc" {
   cidr                  = lookup(var.vpc_parameters, "vpc_cidr", "")
   secondary_cidr_blocks = lookup(var.vpc_parameters, "secondary_cidr_blocks", [])
 
-  azs = lookup(var.vpc_parameters, "custom_azs", ["${local.metadata.aws_region}a", "${local.metadata.aws_region}b", "${local.metadata.aws_region}c"])
+  azs = ["${local.metadata.aws_region}a", "${local.metadata.aws_region}b", "${local.metadata.aws_region}c"]
 
   private_subnets          = lookup(var.vpc_parameters, "private_subnets", [])
   private_subnet_names     = lookup(var.vpc_parameters, "private_subnet_names", [])
@@ -39,6 +39,7 @@ module "vpc" {
   reuse_nat_ips          = lookup(var.vpc_parameters, "reuse_nat_ips", false)
   external_nat_ip_ids    = lookup(var.vpc_parameters, "external_nat_ip_ids", [])
   nat_gateway_tags       = lookup(var.vpc_parameters, "nat_gateway_tags", {})
+  nat_eip_tags           = lookup(var.vpc_parameters, "nat_eip_tags", {})
 
   create_private_nat_gateway_route   = lookup(var.vpc_parameters, "create_private_nat_gateway_route", true)
   vpc_block_public_access_options    = lookup(var.vpc_parameters, "vpc_block_public_access_options", {})
