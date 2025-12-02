@@ -8,7 +8,7 @@ module "vpc" {
   cidr                  = lookup(var.vpc_parameters, "vpc_cidr", "")
   secondary_cidr_blocks = lookup(var.vpc_parameters, "secondary_cidr_blocks", [])
 
-  azs = ["${local.metadata.aws_region}a", "${local.metadata.aws_region}b", "${local.metadata.aws_region}c"]
+  azs = lookup(var.vpc_parameters, "custom_azs", ["${local.metadata.aws_region}a", "${local.metadata.aws_region}b", "${local.metadata.aws_region}c"])
 
   private_subnets          = lookup(var.vpc_parameters, "private_subnets", [])
   private_subnet_names     = lookup(var.vpc_parameters, "private_subnet_names", [])
