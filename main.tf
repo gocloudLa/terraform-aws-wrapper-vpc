@@ -10,12 +10,14 @@ module "vpc" {
 
   azs = ["${local.metadata.aws_region}a", "${local.metadata.aws_region}b", "${local.metadata.aws_region}c"]
 
-  private_subnets      = lookup(var.vpc_parameters, "private_subnets", [])
-  private_subnet_names = lookup(var.vpc_parameters, "private_subnet_names", [])
-  public_subnets       = lookup(var.vpc_parameters, "public_subnets", [])
-  public_subnet_names  = lookup(var.vpc_parameters, "public_subnet_names", [])
-  database_subnets     = lookup(var.vpc_parameters, "database_subnets", [])
-  elasticache_subnets  = lookup(var.vpc_parameters, "elasticache_subnets", [])
+  private_subnets          = lookup(var.vpc_parameters, "private_subnets", [])
+  private_subnet_names     = lookup(var.vpc_parameters, "private_subnet_names", [])
+  public_subnets           = lookup(var.vpc_parameters, "public_subnets", [])
+  public_subnet_names      = lookup(var.vpc_parameters, "public_subnet_names", [])
+  database_subnets         = lookup(var.vpc_parameters, "database_subnets", [])
+  database_subnet_names    = lookup(var.vpc_parameters, "database_subnet_names", [])
+  elasticache_subnets      = lookup(var.vpc_parameters, "elasticache_subnets", [])
+  elasticache_subnet_names = lookup(var.vpc_parameters, "elasticache_subnet_names", [])
 
   enable_ipv6 = lookup(var.vpc_parameters, "enable_ipv6", false)
 
