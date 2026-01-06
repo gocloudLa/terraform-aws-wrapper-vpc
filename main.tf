@@ -4,7 +4,7 @@ module "vpc" {
 
   create_vpc = lookup(var.vpc_parameters, "create_vpc", true)
 
-  name                  = lookup(var.vpc_parameters, "custom_vpc_name", local.common_name)
+  name                  = lookup(var.vpc_parameters, "name", local.common_name)
   cidr                  = lookup(var.vpc_parameters, "vpc_cidr", "")
   secondary_cidr_blocks = lookup(var.vpc_parameters, "secondary_cidr_blocks", [])
 
