@@ -136,7 +136,7 @@ module "vpc" {
 
 module "vpc-endpoint" {
   source  = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
-  version = "6.4.0"
+  version = "6.5.1"
 
   create = lookup(var.vpc_parameters, "create_vpc", true)
 
