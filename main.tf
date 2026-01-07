@@ -1,25 +1,32 @@
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "6.4.0"
+  version = "6.5.1"
 
   create_vpc = lookup(var.vpc_parameters, "create_vpc", true)
 
-  name = local.common_name
-  cidr = lookup(var.vpc_parameters, "vpc_cidr", "")
+  name                  = lookup(var.vpc_parameters, "name", local.common_name)
+  cidr                  = lookup(var.vpc_parameters, "vpc_cidr", "")
+  secondary_cidr_blocks = lookup(var.vpc_parameters, "secondary_cidr_blocks", [])
 
   azs = ["${local.metadata.aws_region}a", "${local.metadata.aws_region}b", "${local.metadata.aws_region}c"]
 
-  private_subnets     = lookup(var.vpc_parameters, "private_subnets", [])
-  public_subnets      = lookup(var.vpc_parameters, "public_subnets", [])
-  database_subnets    = lookup(var.vpc_parameters, "database_subnets", [])
-  elasticache_subnets = lookup(var.vpc_parameters, "elasticache_subnets", [])
+  private_subnets          = lookup(var.vpc_parameters, "private_subnets", [])
+  private_subnet_names     = lookup(var.vpc_parameters, "private_subnet_names", [])
+  public_subnets           = lookup(var.vpc_parameters, "public_subnets", [])
+  public_subnet_names      = lookup(var.vpc_parameters, "public_subnet_names", [])
+  database_subnets         = lookup(var.vpc_parameters, "database_subnets", [])
+  database_subnet_names    = lookup(var.vpc_parameters, "database_subnet_names", [])
+  elasticache_subnets      = lookup(var.vpc_parameters, "elasticache_subnets", [])
+  elasticache_subnet_names = lookup(var.vpc_parameters, "elasticache_subnet_names", [])
 
   enable_ipv6 = lookup(var.vpc_parameters, "enable_ipv6", false)
 
   manage_default_vpc = lookup(var.vpc_parameters, "manage_default_vpc", false)
 
   create_igw = lookup(var.vpc_parameters, "create_igw", true)
+  igw_tags   = lookup(var.vpc_parameters, "igw_tags", {})
 
+  instance_tenancy     = lookup(var.vpc_parameters, "instance_tenancy", "default")
   enable_dns_hostnames = lookup(var.vpc_parameters, "enable_dns_hostnames", true)
   enable_dns_support   = lookup(var.vpc_parameters, "enable_dns_support", true)
 
@@ -31,6 +38,8 @@ module "vpc" {
   one_nat_gateway_per_az = lookup(var.vpc_parameters, "one_nat_gateway_per_az", false)
   reuse_nat_ips          = lookup(var.vpc_parameters, "reuse_nat_ips", false)
   external_nat_ip_ids    = lookup(var.vpc_parameters, "external_nat_ip_ids", [])
+  nat_gateway_tags       = lookup(var.vpc_parameters, "nat_gateway_tags", {})
+  nat_eip_tags           = lookup(var.vpc_parameters, "nat_eip_tags", {})
 
   create_private_nat_gateway_route   = lookup(var.vpc_parameters, "create_private_nat_gateway_route", true)
   vpc_block_public_access_options    = lookup(var.vpc_parameters, "vpc_block_public_access_options", {})
@@ -52,6 +61,8 @@ module "vpc" {
   default_route_table_propagating_vgws = lookup(var.vpc_parameters, "default_route_table_propagating_vgws", [])
   default_route_table_routes           = lookup(var.vpc_parameters, "default_route_table_routes", [])
   default_route_table_tags             = lookup(var.vpc_parameters, "default_route_table_tags", { Name = "${local.common_name}-default" })
+  public_route_table_tags              = lookup(var.vpc_parameters, "public_route_table_tags", {})
+  private_route_table_tags             = lookup(var.vpc_parameters, "private_route_table_tags", {})
 
 
   # sg_default config
@@ -125,7 +136,7 @@ module "vpc" {
 
 module "vpc-endpoint" {
   source  = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
-  version = "6.4.0"
+  version = "6.5.1"
 
   create = lookup(var.vpc_parameters, "create_vpc", true)
 
@@ -139,7 +150,7 @@ module "vpc-endpoint" {
       service_type    = "Gateway"
       route_table_ids = try(flatten([module.vpc.intra_route_table_ids, module.vpc.private_route_table_ids, module.vpc.public_route_table_ids]), [])
       policy          = data.aws_iam_policy_document.s3_endpoint_policy.json
-      tags            = { Name = "${local.common_name}-s3-vpc-endpoint" }
+      tags            = lookup(var.vpc_parameters, "vpc_endpoint_s3_tags", { Name = "${local.common_name}-s3-vpc-endpoint" })
     },
     dynamodb = {
       service         = "dynamodb"
