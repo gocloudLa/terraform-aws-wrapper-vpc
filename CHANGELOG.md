@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.0](https://github.com/gocloudLa/terraform-aws-wrapper-vpc/compare/v1.0.2...v1.1.0) (2026-01-07)
+
+
+### Features
+
+* **module:** add custom-name & secondary cidr ([#10](https://github.com/gocloudLa/terraform-aws-wrapper-vpc/issues/10)) ([ec84553](https://github.com/gocloudLa/terraform-aws-wrapper-vpc/commit/ec845532ac7367bb08896641793fcc9a56848e14))
+
+
+### Bug Fixes
+
+* **deps:** bump terraform-aws-modules/vpc/aws from 6.2.0 to 6.4.0 in the all-terraform-dependencies group across 1 directory ([#7](https://github.com/gocloudLa/terraform-aws-wrapper-vpc/issues/7)) ([8d0a51a](https://github.com/gocloudLa/terraform-aws-wrapper-vpc/commit/8d0a51a0c75de1f7ab6ec7cad18231d840dfea2f))
+
 ## [1.0.2](https://github.com/gocloudLa/terraform-aws-wrapper-vpc/compare/v1.0.1...v1.0.2) (2025-10-11)
 
 
