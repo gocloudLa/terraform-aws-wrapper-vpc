@@ -138,7 +138,7 @@ module "vpc-endpoint" {
   source  = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
   version = "6.5.1"
 
-  create = lookup(var.vpc_parameters, "create_vpc", true) && ((lookup(var.vpc_parameters, "creatp_s3_vpc_endpoint", true)) || (lookup(var.vpc_parameters, "create_dynamodb_vpc_endpoint", true)))
+  create = lookup(var.vpc_parameters, "create_vpc", true) && (lookup(var.vpc_parameters, "creatp_s3_vpc_endpoint", true) || lookup(var.vpc_parameters, "create_dynamodb_vpc_endpoint", true))
 
   vpc_id = try(module.vpc.vpc_id, null)
 
