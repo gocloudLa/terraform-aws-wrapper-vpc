@@ -138,7 +138,7 @@ module "vpc-endpoint" {
   source  = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
   version = "6.5.1"
 
-  create = lookup(var.vpc_parameters, "create_vpc", true)
+  create = lookup(var.vpc_parameters, "create_vpc", true) && ((lookup(var.vpc_parameters, "creatp_s3_vpc_endpoint", true)) || (lookup(var.vpc_parameters, "create_dynamodb_vpc_endpoint", true)))
 
   vpc_id = try(module.vpc.vpc_id, null)
 
@@ -146,6 +146,7 @@ module "vpc-endpoint" {
 
   endpoints = {
     s3 = {
+      create          = lookup(var.vpc_parameters, "creatp_s3_vpc_endpoint", true)
       service         = "s3"
       service_type    = "Gateway"
       route_table_ids = try(flatten([module.vpc.intra_route_table_ids, module.vpc.private_route_table_ids, module.vpc.public_route_table_ids]), [])
@@ -153,6 +154,7 @@ module "vpc-endpoint" {
       tags            = lookup(var.vpc_parameters, "vpc_endpoint_s3_tags", { Name = "${local.common_name}-s3-vpc-endpoint" })
     },
     dynamodb = {
+      create          = lookup(var.vpc_parameters, "create_dynamodb_vpc_endpoint", true)
       service         = "dynamodb"
       service_type    = "Gateway"
       route_table_ids = try(flatten([module.vpc.intra_route_table_ids, module.vpc.private_route_table_ids, module.vpc.public_route_table_ids]), [])
