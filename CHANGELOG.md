@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/gocloudLa/terraform-aws-wrapper-vpc/compare/v1.1.0...v1.2.0) (2026-01-30)
+
+
+### Features
+
+* **module:** add vpc endpoint condition creation ([#11](https://github.com/gocloudLa/terraform-aws-wrapper-vpc/issues/11)) ([78a7fed](https://github.com/gocloudLa/terraform-aws-wrapper-vpc/commit/78a7fed3033fc4e862a1a48ce0ae7fe6155f3a32))
+
 ## [1.1.0](https://github.com/gocloudLa/terraform-aws-wrapper-vpc/compare/v1.0.2...v1.1.0) (2026-01-07)
 
 
