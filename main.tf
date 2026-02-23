@@ -1,6 +1,6 @@
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "6.5.1"
+  version = "6.6.0"
 
   create_vpc = lookup(var.vpc_parameters, "create_vpc", true)
 
@@ -136,7 +136,7 @@ module "vpc" {
 
 module "vpc-endpoint" {
   source  = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
-  version = "6.5.1"
+  version = "6.6.0"
 
   create = lookup(var.vpc_parameters, "create_vpc", true) && (lookup(var.vpc_parameters, "create_s3_vpc_endpoint", true) || lookup(var.vpc_parameters, "create_dynamodb_vpc_endpoint", true))
 
