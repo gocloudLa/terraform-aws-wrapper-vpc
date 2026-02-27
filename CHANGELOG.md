@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/gocloudLa/terraform-aws-wrapper-vpc/compare/v1.2.0...v1.2.1) (2026-02-27)
+
+
+### Bug Fixes
+
+* **deps:** bump the all-terraform-dependencies group across 2 directories with 3 updates ([#13](https://github.com/gocloudLa/terraform-aws-wrapper-vpc/issues/13)) ([45adcd7](https://github.com/gocloudLa/terraform-aws-wrapper-vpc/commit/45adcd7fe3353e8fedfcaea3daa38e683d8b70c3))
+
 ## [1.2.0](https://github.com/gocloudLa/terraform-aws-wrapper-vpc/compare/v1.1.0...v1.2.0) (2026-01-30)
 
 
