@@ -1,0 +1,10 @@
+title: "Simple VPC Example"
+description: "This example demonstrates a minimal but production-ready VPC setup with an EC2-based NAT Gateway, public and private subnets across multiple availability zones, database and ElastiCache subnet tiers, and Gateway VPC endpoints for S3 and DynamoDB with resource-based policies."
+main_purpose: "The main purpose is to show a straightforward VPC configuration using the wrapper module with cost-effective EC2 NAT, multi-tier subnets (private, public, db, elasticache), and private access to S3 and DynamoDB via VPC endpoints."
+key_features:
+  - "**VPC and CIDR**: Single VPC with a /16 CIDR (10.130.0.0/16) and subnets derived via cidrsubnet."
+  - "**Internet Gateway**: One Internet Gateway (00-igw) for public outbound and inbound traffic."
+  - "**EC2 NAT Gateway**: Cost-effective EC2-based NAT Gateway with optional Elastic IP for private subnet internet egress."
+  - "**Route Tables**: Separate route tables for private (default route via EC2 NAT) and public (default route via IGW) subnets."
+  - "**Multi-Tier Subnets**: Private, public, database, and ElastiCache subnets spread across three availability zones."
+  - "**Gateway VPC Endpoints**: S3 and DynamoDB Gateway endpoints with custom resource-based policies for private access without NAT."
