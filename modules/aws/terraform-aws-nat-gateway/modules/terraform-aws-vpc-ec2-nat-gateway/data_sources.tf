@@ -20,3 +20,9 @@ data "aws_vpc" "this" {
 
   id = var.vpc_id
 }
+
+data "aws_subnet" "this" {
+  count = var.create ? 1 : 0
+
+  id = var.subnet_id
+}

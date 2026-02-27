@@ -1,12 +1,12 @@
 module "ec2_instance" {
   source  = "terraform-aws-modules/ec2-instance/aws"
-  version = "6.2.0"
+  version = "6.0.2"
   count   = var.create ? 1 : 0
 
   name                   = var.name
   ami                    = data.aws_ami.this[0].id
   instance_type          = var.instance_type
-  availability_zone      = var.availability_zone
+  availability_zone      = data.aws_subnet.this[0].availability_zone
   subnet_id              = var.subnet_id
   create_security_group  = false
   vpc_security_group_ids = [module.security_group[0].security_group_id]
@@ -32,8 +32,8 @@ module "ec2_instance" {
     encrypted             = lookup(var.root_block_device, "encrypted", true)
     iops                  = lookup(var.root_block_device, "iops", null)
     kms_key_id            = lookup(var.root_block_device, "kms_key_id", null)
-    size                  = lookup(var.root_block_device, "size", 8)
-    type                  = lookup(var.root_block_device, "type", "gp3")
+    size                  = lookup(var.root_block_device, "volume_size", 8)
+    type                  = lookup(var.root_block_device, "volume_type", "gp3")
     throughput            = lookup(var.root_block_device, "throughput", null)
   }
 
@@ -42,7 +42,7 @@ module "ec2_instance" {
 
 module "security_group" {
   source  = "terraform-aws-modules/security-group/aws"
-  version = "5.3.1"
+  version = "5.2.0"
   count   = var.create ? 1 : 0
 
   name                = var.name
@@ -54,14 +54,6 @@ module "security_group" {
   egress_rules        = ["all-all"]
 
   tags = var.tags
-}
-
-resource "aws_route" "this" {
-  count = var.create ? 1 : 0
-
-  route_table_id         = var.route_table_id
-  destination_cidr_block = "0.0.0.0/0"
-  network_interface_id   = module.ec2_instance[0].primary_network_interface_id
 }
 
 resource "aws_eip" "this" {

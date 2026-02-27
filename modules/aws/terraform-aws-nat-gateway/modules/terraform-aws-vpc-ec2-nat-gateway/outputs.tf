@@ -8,3 +8,8 @@ output "ec2_instance_arn" {
   description = "The ARN of the instance"
   value       = try(module.ec2_instance[0].arn, "")
 }
+
+output "primary_network_interface_id" {
+  description = "The ID of the instance"
+  value       = try(module.ec2_instance[0].primary_network_interface_id, "")
+}
