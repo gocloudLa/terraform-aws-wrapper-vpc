@@ -6,67 +6,112 @@ Each module encapsulates best practices, security configurations, and sensible d
 
 ## 📦 Module: Terraform VPC Networking Module
 <p align="right"><a href="https://github.com/gocloudLa/terraform-aws-wrapper-vpc/releases/latest"><img src="https://img.shields.io/github/v/release/gocloudLa/terraform-aws-wrapper-vpc.svg?style=for-the-badge" alt="Latest Release"/></a><a href=""><img src="https://img.shields.io/github/last-commit/gocloudLa/terraform-aws-wrapper-vpc.svg?style=for-the-badge" alt="Last Commit"/></a><a href="https://registry.terraform.io/modules/gocloudLa/wrapper-vpc/aws"><img src="https://img.shields.io/badge/Terraform-Registry-7B42BC?style=for-the-badge&logo=terraform&logoColor=white" alt="Terraform Registry"/></a></p>
-The Terraform Wrapper for VPC simplifies the configuration of basic Networking services (VPC / Subnets / Route Tables / IGW / NatGW / NACL / etc).
+The Terraform Wrapper for VPC simplifies the configuration of basic Networking services (VPC / Subnets / Route Tables / IGW / NatGW / NACL / VPC Endpoints / Flow Logs) using a structured map of VPCs and local AWS modules.
 
 ### ✨ Features
 
 - 🖥️ [Custom EC2 NAT Gateway](#custom-ec2-nat-gateway) - Deploy cost-effective EC2-based NAT Gateway instead of managed NAT Gateway
+
+- 🌐 [Per-VPC top-level attributes](#per-vpc-top-level-attributes) - VPC CIDR, IPAM, DNS, DHCP options and tags inside each `vpc_parameters.<key>`
+
+- 🔌 [internet_gateway map](#internet_gateway-map) - Define one or more Internet Gateways per VPC
+
+- 🛡️ [network_acl map](#network_acl-map) - Dedicated Network ACLs per VPC
+
+- 📍 [subnets map](#subnets-map) - Nested map of subnet groups and AZs with full subnet options
+
+- 🔀 [nat_gateway map](#nat_gateway-map) - AWS or EC2 NAT Gateways per VPC
+
+- 🛤️ [route_table map](#route_table-map) - Route tables with default route and optional extra routes
+
+- 📋 [flow_logs map](#flow_logs-map) - VPC Flow Logs to CloudWatch or S3
+
+- 🔗 [endpoints map](#endpoints-map) - Gateway and Interface VPC endpoints
 
 
 
 ### 🔗 External Modules
 | Name | Version |
 |------|------:|
-| <a href="https://github.com/terraform-aws-modules/terraform-aws-ec2-instance" target="_blank">terraform-aws-modules/ec2-instance/aws</a> | 6.2.0 |
-| <a href="https://github.com/terraform-aws-modules/terraform-aws-security-group" target="_blank">terraform-aws-modules/security-group/aws</a> | 5.3.1 |
-| <a href="https://github.com/terraform-aws-modules/terraform-aws-vpc" target="_blank">terraform-aws-modules/vpc/aws</a> | 6.6.0 |
+| <a href="https://github.com/terraform-aws-modules/terraform-aws-ec2-instance" target="_blank">terraform-aws-modules/ec2-instance/aws</a> | 6.0.2 |
+| <a href="https://github.com/terraform-aws-modules/terraform-aws-security-group" target="_blank">terraform-aws-modules/security-group/aws</a> | 5.2.0 |
 
 
 
 ## 🚀 Quick Start
 ```hcl
-vpc_parameters = {
-    vpc_cidr = local.vpc_cidr
-    private_subnets = [
-      cidrsubnet(local.vpc_cidr, 4, 0),
-      cidrsubnet(local.vpc_cidr, 4, 1),
-      cidrsubnet(local.vpc_cidr, 4, 2)
-    ]
-    public_subnets = [
-      cidrsubnet(local.vpc_cidr, 4, 3),
-      cidrsubnet(local.vpc_cidr, 4, 4),
-      cidrsubnet(local.vpc_cidr, 4, 5)
-    ]
-    database_subnets = [
-      cidrsubnet(local.vpc_cidr, 4, 6),
-      cidrsubnet(local.vpc_cidr, 4, 7),
-      cidrsubnet(local.vpc_cidr, 4, 8)
-    ]
-    elasticache_subnets = [
-      cidrsubnet(local.vpc_cidr, 4, 9),
-      cidrsubnet(local.vpc_cidr, 4, 10),
-      cidrsubnet(local.vpc_cidr, 4, 11)
-    ]
-    elasticache_dedicated_network_acl = false
+module "wrapper_vpc" {
+  source = "path/to/terraform-aws-wrapper-vpc"
 
-    default_security_group_ingress = [
-      {
-        "cidr_blocks" = "0.0.0.0/0",
-        "from_port"   = 0,
-        "to_port"     = 0,
-        "protocol"    = "-1"
-      }
-    ]
-    default_security_group_egress = [
-      {
-        "cidr_blocks" = "0.0.0.0/0",
-        "from_port"   = 0,
-        "to_port"     = 0,
-        "protocol"    = "-1"
-      }
-    ]
-    enable_nat_gateway         = true
+  metadata = {
+    key = {
+      company = "myco"
+      region  = "use1"
+      env     = "prd"
+    }
+    environment = "Production"
+    common_name = "myco-prd"  # optional; defaults to company-env
+    common_tags = {}          # optional
   }
+
+  vpc_parameters = {
+    "main" = {
+      vpc_cidr = "10.130.0.0/16"
+      internet_gateway = {
+        "00-igw" = {}
+      }
+      nat_gateway = {
+        "natgw" = {
+          subnet = "public-${data.aws_region.current.name}a"
+          kind   = "aws"
+        }
+      }
+      route_table = {
+        "00-private" = {
+          default_route = { network_interface = "natgw" }
+        }
+        "00-public" = {
+          default_route = { gateway = "00-igw" }
+        }
+      }
+      network_acl = {}
+      subnets = {
+        "private" = {
+          "${data.aws_region.current.name}a" = {
+            cidr_block  = cidrsubnet("10.130.0.0/16", 4, 0)
+            az          = "a"
+            route_table = "00-private"
+            network_acl = ""
+          }
+          "${data.aws_region.current.name}b" = {
+            cidr_block  = cidrsubnet("10.130.0.0/16", 4, 1)
+            az          = "b"
+            route_table = "00-private"
+            network_acl = ""
+          }
+        }
+        "public" = {
+          "${data.aws_region.current.name}a" = {
+            cidr_block  = cidrsubnet("10.130.0.0/16", 4, 3)
+            az          = "a"
+            route_table = "00-public"
+            network_acl = ""
+          }
+          "${data.aws_region.current.name}b" = {
+            cidr_block  = cidrsubnet("10.130.0.0/16", 4, 4)
+            az          = "b"
+            route_table = "00-public"
+            network_acl = ""
+          }
+        }
+      }
+      endpoints = {
+        "00" = { service = "s3", service_type = "Gateway", route_table_ids = ["00-private", "00-public"], policy = null }
+        "01" = { service = "dynamodb", service_type = "Gateway", route_table_ids = ["00-private", "00-public"], policy = null }
+      }
+    }
+  }
+}
 ```
 
 
@@ -80,24 +125,291 @@ Configure a custom EC2 instance as NAT Gateway for private subnet internet acces
 
 ```hcl
 vpc_parameters = {
-  vpc_cidr = local.vpc_cidr
-  private_subnets = [
-    cidrsubnet(local.vpc_cidr, 4, 0),
-    cidrsubnet(local.vpc_cidr, 4, 1),
-    cidrsubnet(local.vpc_cidr, 4, 2)
-  ]
-  public_subnets = [
-    cidrsubnet(local.vpc_cidr, 4, 3),
-    cidrsubnet(local.vpc_cidr, 4, 4),
-    cidrsubnet(local.vpc_cidr, 4, 5)
-  ]
-  
-  # Disable managed NAT Gateway
-  enable_nat_gateway = false
-  
-  # Enable EC2-based NAT Gateway
-  enable_ec2_nat_gateway = true
-  ec2_nat_gateway_attach_eip = true
+  "main" = {
+    vpc_cidr = "10.130.0.0/16"
+    internet_gateway = { "00-igw" = {} }
+    nat_gateway = {
+      "natgw" = {
+        subnet = "public-${data.aws_region.current.name}a"
+        kind   = "ec2"
+        nat_parameters = {
+          ec2_nat_gateway_attach_eip = true
+          connectivity_type          = "public"
+        }
+      }
+    }
+    route_table = {
+      "00-private" = { default_route = { network_interface = "natgw" } }
+      "00-public"  = { default_route = { gateway = "00-igw" } }
+    }
+    network_acl = {}
+    subnets     = { ... }
+  }
+}
+```
+
+
+</details>
+
+
+### Per-VPC top-level attributes
+Top-level keys for each VPC entry. Omit optional keys to use defaults.
+
+
+<details><summary>Per-VPC top-level example</summary>
+
+```hcl
+vpc_parameters = {
+  "main" = {
+    custom_common_name = "myco-prd-main"
+
+    vpc_cidr                           = "10.130.0.0/16"
+    use_ipam_pool                      = false
+    ipv4_ipam_pool_id                  = null
+    ipv4_netmask_length                = null
+    enable_ipv6                        = false
+    ipv6_cidr_block                    = null
+    ipv6_ipam_pool_id                  = null
+    ipv6_netmask_length                = null
+    ipv6_cidr_block_network_border_group = null
+
+    instance_tenancy                     = "default"
+    enable_dns_hostnames                 = true
+    enable_dns_support                   = true
+    enable_network_address_usage_metrics = null
+
+    enable_dhcp_options               = false
+    dhcp_options_domain_name          = ""
+    dhcp_options_domain_name_servers  = []
+    dhcp_options_ntp_servers          = []
+    dhcp_options_netbios_name_servers = []
+    dhcp_options_netbios_node_type    = ""
+
+    tags = { "extra" = "value" }
+  }
+}
+```
+
+
+</details>
+
+
+### internet_gateway map
+Map of IGW names to optional config. Each key becomes an IGW; values can override create flags and tags.
+
+
+<details><summary>internet_gateway example</summary>
+
+```hcl
+internet_gateway = {
+  "00-igw" = {
+    create_internet_gateway = true
+    create_egress_only_igw  = false
+    tags                    = {}
+  }
+}
+```
+
+
+</details>
+
+
+### network_acl map
+Map of NACL names to rules and tags. Subnets reference these by name via `network_acl`.
+
+
+<details><summary>network_acl example</summary>
+
+```hcl
+network_acl = {
+  "private-nacl" = {
+    create_network_acl = true
+    rules              = {}
+    tags               = {}
+  }
+}
+```
+
+
+</details>
+
+
+### subnets map
+Structure is `subnets.<group>.<az_key>`. Each subnet can set route_table, network_acl, and optional DNS/IPv6/outpost options.
+
+
+<details><summary>subnets example</summary>
+
+```hcl
+subnets = {
+  "private" = {
+    "${data.aws_region.current.name}a" = {
+      create_subnet  = true
+      cidr_block     = cidrsubnet("10.130.0.0/16", 4, 0)
+      az             = "a"
+      route_table    = "00-private"
+      network_acl    = "private-nacl"
+      enable_dns64   = false
+      enable_resource_name_dns_aaaa_record_on_launch = false
+      enable_resource_name_dns_a_record_on_launch    = false
+      private_dns_hostname_type_on_launch            = null
+      map_public_ip_on_launch = false
+      enable_lni_at_device_index = null
+      outpost_arn                     = null
+      map_customer_owned_ip_on_launch = null
+      customer_owned_ipv4_pool        = null
+      tags = {}
+    }
+  }
+  "public" = {
+    "${data.aws_region.current.name}a" = {
+      create_subnet  = true
+      cidr_block     = cidrsubnet("10.130.0.0/16", 4, 3)
+      az             = "a"
+      route_table    = "00-public"
+      network_acl    = ""
+      map_public_ip_on_launch = true
+      tags = {}
+    }
+  }
+}
+```
+
+
+</details>
+
+
+### nat_gateway map
+Map of NAT names to config. Use `kind = "aws"` or `"ec2"`. Subnet key must match `{group}-{region}{az}` (e.g. `public-us-east-1a`).
+
+
+<details><summary>nat_gateway example</summary>
+
+```hcl
+nat_gateway = {
+  "natgw" = {
+    create_nat_gateway = true
+    kind               = "aws"
+    subnet             = "public-${data.aws_region.current.name}a"
+    nat_parameters = {
+      connectivity_type                  = "public"
+      private_ip                         = null
+      secondary_allocation_ids           = null
+      secondary_private_ip_address_count = null
+      secondary_private_ip_addresses     = null
+      ec2_nat_gateway_attach_eip = false
+    }
+    tags = {}
+  }
+}
+```
+
+
+</details>
+
+
+### route_table map
+Map of route table names to config. `default_route` sets 0.0.0.0/0 via `gateway`, `network_interface`, or `nat_gateway` (by name). `routes` adds named routes.
+
+
+<details><summary>route_table example</summary>
+
+```hcl
+route_table = {
+  "00-private" = {
+    create_route_table = true
+    default_route = {
+      nat_gateway            = "natgw"
+      nat_gateway_id         = null
+      gateway                = null
+      gateway_id             = null
+      network_interface     = null
+      network_interface_id   = null
+      vpc_endpoint_id        = null
+      transit_gateway_id     = null
+      vpc_peering_connection_id = null
+      core_network_arn       = null
+      carrier_gateway_id     = null
+      local_gateway_id       = null
+    }
+    routes = {
+      "to-onprem" = {
+        destination_cidr_block      = "10.0.0.0/8"
+        destination_ipv6_cidr_block = null
+        transit_gateway_id          = "tgw-xxx"
+      }
+    }
+  }
+  "00-public" = {
+    create_route_table = true
+    default_route = { gateway = "00-igw" }
+    routes = {}
+  }
+}
+```
+
+
+</details>
+
+
+### flow_logs map
+Map of flow log names to destination, IAM, and format options.
+
+
+<details><summary>flow_logs example</summary>
+
+```hcl
+flow_logs = {
+  "default" = {
+    enable_flow_log                                 = true
+    create_flow_log_cloudwatch_iam_role             = true
+    create_flow_log_cloudwatch_log_group            = true
+    vpc_flow_log_permissions_boundary               = null
+    flow_log_traffic_type                           = "ALL"
+    flow_log_destination_type                       = "cloud-watch-logs"
+    flow_log_log_format                             = null
+    flow_log_destination_arn                        = ""
+    flow_log_cloudwatch_iam_role_arn                = ""
+    flow_log_cloudwatch_log_group_name_prefix       = ""
+    flow_log_cloudwatch_log_group_retention_in_days = 365
+    flow_log_cloudwatch_log_group_kms_key_id        = null
+    flow_log_max_aggregation_interval               = 600
+    flow_log_hive_compatible_partitions             = false
+    flow_log_per_hour_partition                     = false
+    tags                                            = {}
+  }
+}
+```
+
+
+</details>
+
+
+### endpoints map
+Map of endpoint keys to service name, type (Gateway/Interface), route tables, and optional policy.
+
+
+<details><summary>endpoints example</summary>
+
+```hcl
+endpoints = {
+  "00" = {
+    service             = "s3"
+    service_name        = null
+    service_type        = "Gateway"
+    route_table_ids     = ["00-private", "00-public"]
+    policy              = data.aws_iam_policy_document.s3_endpoint_policy.json
+    private_dns_enabled = false
+    security_group_ids  = []
+    tags                = {}
+  }
+  "01" = {
+    service         = "dynamodb"
+    service_type    = "Gateway"
+    route_table_ids = ["00-private", "00-public"]
+    policy          = null
+    tags            = {}
+  }
 }
 ```
 
@@ -108,95 +420,25 @@ vpc_parameters = {
 
 
 ## 📑 Inputs
-| Name                                    | Description                                                                                       | Type     | Default                                             | Required |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------- | -------- | --------------------------------------------------- | -------- |
-| create_database_internet_gateway_route  | Create an Internet Gateway route for the database subnet.                                         | `bool`   | `false`                                             | no       |
-| create_database_nat_gateway_route       | Create a NAT Gateway route for the database subnet.                                               | `bool`   | `false`                                             | no       |
-| create_elasticache_subnet_group         | Create a subnet group for Elasticache.                                                            | `bool`   | `false`                                             | no       |
-| create_elasticache_subnet_route_table   | Create a route table for the Elasticache subnet.                                                  | `bool`   | `false`                                             | no       |
-| create_flow_log_cloudwatch_iam_role     | Create an IAM role for CloudWatch Flow Logs.                                                      | `bool`   | `false`                                             | no       |
-| create_flow_log_cloudwatch_log_group    | Create a CloudWatch log group for Flow Logs.                                                      | `bool`   | `false`                                             | no       |
-| create_igw                              | Create an Internet Gateway for the VPC.                                                           | `bool`   | `true`                                              | no       |
-| create_s3_vpc_endpoint                  | Controls if a S3 VPC Enpoint should be created.                                                   | `bool`   | `true`                                              | no       |
-| create_dynamodb_vpc_endpoint            | Controls if a DynamoDB VPC Enpoint should be created.                                             | `bool`   | `true`                                              | no       |
-| create_private_nat_gateway_route        | Controls if a NAT gateway route should be created to give internet access to the private subnets. | `bool`   | `true`                                              | no       |
-| database_subnet_group_name              | Name for the database subnet group.                                                               | `string` | `""`                                                | no       |
-| database_subnets                        | List of database subnets for the VPC.                                                             | `list`   | `[]`                                                | no       |
-| database_subnet_names                   | Explicit values to use in the Name tag on database subnets.                                       | `list`   | `[]`                                                | no       |
-| default_network_acl_tags                | Tags for the default network ACL.                                                                 | `null`   | `{ Name = "${local.common_name}-default" }`         | no       |
-| default_route_table_propagating_vgws    | List of VGWs to propagate in the default route table.                                             | `list`   | `[]`                                                | no       |
-| default_route_table_routes              | Custom routes for the default route table.                                                        | `list`   | `[]`                                                | no       |
-| default_route_table_tags                | Tags for the default route table.                                                                 | `null`   | `{ Name = "${local.common_name}-default" }`         | no       |
-| default_security_group_egress           | Egress rules for the default security group.                                                      | `list`   | `[]`                                                | no       |
-| default_security_group_ingress          | Ingress rules for the default security group.                                                     | `list`   | `[]`                                                | no       |
-| default_security_group_tags             | Tags for the default security group.                                                              | `null`   | `{ Name = "${local.common_name}-default" }`         | no       |
-| dhcp_options_domain_name                | Domain name for DHCP options.                                                                     | `string` | `""`                                                | no       |
-| dhcp_options_domain_name_servers        | List of domain name servers for DHCP options.                                                     | `list`   | `[]`                                                | no       |
-| dhcp_options_netbios_name_servers       | List of NetBIOS name servers for DHCP options.                                                    | `list`   | `[]`                                                | no       |
-| dhcp_options_netbios_node_type          | NetBIOS node type for DHCP options.                                                               | `string` | `""`                                                | no       |
-| dhcp_options_ntp_servers                | List of NTP servers for DHCP options.                                                             | `list`   | `[]`                                                | no       |
-| ec2_nat_gateway_attach_eip              | Attach an Elastic IP to the EC2 NAT Gateway.                                                      | `bool`   | `false`                                             | no       |
-| elasticache_dedicated_network_acl       | Create a dedicated network ACL for Elasticache subnets.                                           | `bool`   | `false`                                             | no       |
-| elasticache_subnet_group_name           | Name for the Elasticache subnet group.                                                            | `string` | `null`                                              | no       |
-| elasticache_subnet_group_tags           | Tags for the Elasticache subnet group.                                                            | `map`    | `{}`                                                | no       |
-| elasticache_subnets                     | List of Elasticache subnets for the VPC.                                                          | `list`   | `[]`                                                | no       |
-| elasticache_subnet_names                | Explicit values to use in the Name tag on elasticache subnets.                                    | `list`   | `[]`                                                | no       |
-| enable_dhcp_options                     | Enable custom DHCP options for the VPC.                                                           | `bool`   | `false`                                             | no       |
-| enable_dns_hostnames                    | Enable DNS hostnames in the VPC.                                                                  | `bool`   | `true`                                              | no       |
-| enable_dns_support                      | Enable DNS support in the VPC.                                                                    | `bool`   | `true`                                              | no       |
-| enable_ec2_nat_gateway                  | Enable EC2-based NAT Gateway instead of managed NAT Gateway.                                      | `bool`   | `false`                                             | no       |
-| enable_flow_log                         | Enable VPC Flow Logs.                                                                             | `bool`   | `false`                                             | no       |
-| enable_ipv6                             | Enable IPv6 for the VPC.                                                                          | `bool`   | `false`                                             | no       |
-| enable_nat_gateway                      | Enable the NAT Gateway for the VPC.                                                               | `bool`   | `false`                                             | no       |
-| enable_public_redshift                  | Enable public accessibility for Redshift.                                                         | `bool`   | `false`                                             | no       |
-| enable_vpn_gateway                      | Enable a VPN Gateway for the VPC.                                                                 | `bool`   | `false`                                             | no       |
-| external_nat_ip_ids                     | List of EIP IDs to be assigned to the NAT Gateways.                                               | `list`   | `[]`                                                | no       |
-| flow_log_cloudwatch_iam_role_conditions | Additional conditions of the CloudWatch role assumption policy.                                   | `list`   | `[]`                                                | no       |
-| flow_log_destination_arn                | ARN of the destination for Flow Logs.                                                             | `string` | `""`                                                | no       |
-| flow_log_destination_type               | Destination type for Flow Logs (cloud-watch-logs or s3).                                          | `string` | `""`                                                | no       |
-| flow_log_log_format                     | Log format for Flow Logs.                                                                         | `string` | `null`                                              | no       |
-| flow_log_traffic_type                   | Type of traffic to capture in the Flow Log (ALL, ACCEPT, REJECT).                                 | `string` | `""`                                                | no       |
-| igw_tags                                | Additional tags for the internet gateway.                                                         | `map`    | `{}`                                                | no       |
-| instance_tenancy                        | A tenancy option for instances launched into the VPC.                                             | `string` | `"default"`                                         | no       |
-| manage_default_network_acl              | Manage the default network ACL for the VPC.                                                       | `bool`   | `true`                                              | no       |
-| manage_default_route_table              | Manage the default route table for the VPC.                                                       | `bool`   | `true`                                              | no       |
-| manage_default_security_group           | Manage the default security group for the VPC.                                                    | `bool`   | `true`                                              | no       |
-| manage_default_vpc                      | Manage the default VPC.                                                                           | `bool`   | `false`                                             | no       |
-| map_public_ip_on_launch                 | Automatically assign a public IP on instance launch.                                              | `bool`   | `true`                                              | no       |
-| name                                    | Name to be used on all the resources as identifier.                                               | `string` | `local.common_name`                                 | no       |
-| nat_gateway_tags                        | Additional tags for the NAT gateways.                                                             | `map`    | `{}`                                                | no       |
-| nat_eip_tags                            | Additional tags for the NAT EIP.                                                                  | `map`    | `{}`                                                | no       |
-| one_nat_gateway_per_az                  | Create one NAT Gateway per Availability Zone.                                                     | `bool`   | `false`                                             | no       |
-| private_dedicated_network_acl           | Create a dedicated network ACL for private subnets.                                               | `bool`   | `false`                                             | no       |
-| private_inbound_acl_rules               | Inbound rules for private subnets' network ACL.                                                   | `list`   | `[]`                                                | no       |
-| private_outbound_acl_rules              | Outbound rules for private subnets' network ACL.                                                  | `list`   | `[]`                                                | no       |
-| private_subnets                         | List of private subnets for the VPC.                                                              | `list`   | `[]`                                                | no       |
-| private_subnet_names                    | Explicit values to use in the Name tag on private subnets.                                        | `list`   | `[]`                                                | no       |
-| private_route_table_tags                | Additional tags for the private route tables.                                                     | `map`    | `{}`                                                | no       |
-| propagate_private_route_tables_vgw      | Propagate the VPN Gateway to private route tables.                                                | `bool`   | `false`                                             | no       |
-| propagate_public_route_tables_vgw       | Propagate the VPN Gateway to public route tables.                                                 | `bool`   | `false`                                             | no       |
-| public_dedicated_network_acl            | Create a dedicated network ACL for public subnets.                                                | `bool`   | `false`                                             | no       |
-| public_inbound_acl_rules                | Inbound rules for public subnets' network ACL.                                                    | `list`   | `[]`                                                | no       |
-| public_outbound_acl_rules               | Outbound rules for public subnets' network ACL.                                                   | `list`   | `[]`                                                | no       |
-| public_subnets                          | List of public subnets for the VPC.                                                               | `list`   | `[]`                                                | no       |
-| public_subnet_names                     | Explicit values to use in the Name tag on public subnets.                                         | `list`   | `[]`                                                | no       |
-| public_route_table_tags                 | Additional tags for the public route tables.                                                      | `map`    | `{}`                                                | no       |
-| reuse_nat_ips                           | Should be true if you don't want EIPs to be created for your NAT Gateways.                        | `bool`   | `false`                                             | no       |
-| secondary_cidr_blocks                   | List of secondary CIDR blocks to associate with the VPC to extend the IP Address pool.            | `list`   | `[]`                                                | no       |
-| single_nat_gateway                      | Create a single NAT Gateway.                                                                      | `bool`   | `true`                                              | no       |
-| vpc_block_public_access_exclusions      | A map of VPC block public access exclusions.                                                      | `null`   | `{}`                                                | no       |
-| vpc_block_public_access_options         | A map of VPC block public access options.                                                         | `null`   | `{}`                                                | no       |
-| vpc_cidr                                | The CIDR block for the VPC.                                                                       | `string` | `""`                                                | no       |
-| vpc_endpoint_s3_tags                    | Additional tags for the VPC S3 Endpoint.                                                          | `map`    | `{ Name = "${local.common_name}-s3-vpc-endpoint" }` | no       |
-| vpc_flow_log_permissions_boundary       | Permissions boundary for the VPC Flow Log role.                                                   | `string` | `null`                                              | no       |
-| vpn_gateway_az                          | The Availability Zone for the VPN Gateway.                                                        | `string` | `null`                                              | no       |
-| vpn_gateway_id                          | The ID of an existing VPN Gateway to attach to the VPC.                                           | `string` | `""`                                                | no       |
-| tags                                    | A map of tags to assign to resources.                                                             | `map`    | `{}`                                                | no       |
+| Name           | Description                                                                                                | Type       | Default   | Required   |
+| -------------- | ---------------------------------------------------------------------------------------------------------- | ---------- | --------- | ---------- |
+| Name           | Description                                                                                                | Type       | Default   | Required   |
+| ------         | -------------                                                                                              | ------     | --------- | ---------- |
+| metadata       | Metadata for naming and tagging (key.company, key.env, key.region, environment, common_name, common_tags). | `object`   | n/a       | yes        |
+| vpc_parameters | Map of VPC configurations. Each key is a VPC id; value supports the attributes below.                      | `map(any)` | `{}`      | no         |
+| vpc_defaults   | Default values applied across vpc_parameters (optional).                                                   | `any`      | `{}`      | no         |
 
 
 
 
 
+
+
+## ⚠️ Important Notes
+- Each key under `vpc_parameters` is a VPC identifier. Subnet keys are built as `{vpc_key}-{subnet_group}-{az_name}` (e.g. `main-public-us-east-1a`).
+- NAT gateway `subnet` must reference the subnet group and AZ (e.g. `public-us-east-1a`) so the module can resolve `module.subnet["{vpc_key}-{subnet}"]`.
+- Route table `default_route` can use `gateway` (IGW name), `network_interface` (NAT name), or `nat_gateway` (NAT name) to set the default 0.0.0.0/0 route.
+- See `examples/00-simple-vpc` and `examples/01-complete-vpc` for full configurations.
 
 
 
