@@ -61,7 +61,7 @@ locals {
   ]
   create_internet_gateway = merge(flatten(local.create_internet_gateway_tmp)...)
 }
-module "internet-gateway" {
+module "internet_gateway" {
 
   source = "./modules/aws/terraform-aws-internet-gateway"
 
@@ -103,7 +103,7 @@ locals {
     ]
   ])
 }
-module "network-acl" {
+module "network_acl" {
 
   source = "./modules/aws/terraform-aws-network-acl"
 
@@ -195,7 +195,7 @@ locals {
   ]
   create_route_table = merge(flatten(local.create_route_table_tmp)...)
 }
-module "route-table" {
+module "route_table" {
 
   source = "./modules/aws/terraform-aws-route-table"
 
@@ -249,9 +249,9 @@ locals {
             customer_owned_ipv4_pool        = lookup(subnet_values, "customer_owned_ipv4_pool", null)
             outpost_arn                     = lookup(subnet_values, "outpost_arn", null)
 
-            route_table = lookup(subnet_values, "route_table", "") != "" ? module.route-table["${vpc_key}-${subnet_values.route_table}"].id : ""
+            route_table = lookup(subnet_values, "route_table", "") != "" ? module.route_table["${vpc_key}-${subnet_values.route_table}"].id : ""
             attach_nacl = lookup(subnet_values, "network_acl", "") != "" ? true : false
-            network_acl = lookup(subnet_values, "network_acl", "") != "" ? module.network-acl["${vpc_key}-${subnet_values.network_acl}"].id : ""
+            network_acl = lookup(subnet_values, "network_acl", "") != "" ? module.network_acl["${vpc_key}-${subnet_values.network_acl}"].id : ""
 
             tags = lookup(subnet_values, "tags", merge(local.common_tags, { Name = "${local.custom_common_name[vpc_key]}-${subnet_group_name}-${subnet_name}" }))
 
@@ -311,7 +311,7 @@ locals {
   ]
   create_nat_gateway = merge(flatten(local.create_nat_gateway_tmp)...)
 }
-module "nat-gateway" {
+module "nat_gateway" {
   source = "./modules/aws/terraform-aws-nat-gateway"
 
   for_each = local.create_nat_gateway
@@ -339,16 +339,16 @@ locals {
 
           # destination_prefix_list_id = try(route_table_values.default_route.vpc_endpoint_id, null)
 
-          nat_gateway_id = try(module.nat-gateway["${vpc_key}-${route_table_values.default_route.nat_gateway}"].aws_nat_gateway_id, route_table_values.default_route.nat_gateway_id, null)
+          nat_gateway_id = try(module.nat_gateway["${vpc_key}-${route_table_values.default_route.nat_gateway}"].aws_nat_gateway_id, route_table_values.default_route.nat_gateway_id, null)
 
-          gateway_id = try(module.internet-gateway["${vpc_key}-${route_table_values.default_route.gateway}"].id, route_table_values.default_route.gateway_id, null)
+          gateway_id = try(module.internet_gateway["${vpc_key}-${route_table_values.default_route.gateway}"].id, route_table_values.default_route.gateway_id, null)
 
-          network_interface_id = try(module.nat-gateway["${vpc_key}-${route_table_values.default_route.network_interface}"].ec2_nat_gateway_id, route_table_values.default_route.network_interface_id, null)
+          network_interface_id = try(module.nat_gateway["${vpc_key}-${route_table_values.default_route.network_interface}"].ec2_nat_gateway_id, route_table_values.default_route.network_interface_id, null)
 
-          egress_only_gateway_id = try(module.internet-gateway["${vpc_key}-${route_table_values.route_values.egress_only_gateway}"].egress_only_id, route_table_values.route_values.egress_only_gateway_id, null)
+          egress_only_gateway_id = try(module.internet_gateway["${vpc_key}-${route_table_values.route_values.egress_only_gateway}"].egress_only_id, route_table_values.route_values.egress_only_gateway_id, null)
 
           vpc_endpoint_id = try(route_table_values.default_route.vpc_endpoint_id, null)
-          #try(module.vpc-endpoint["${vpc_key}-${route_table_values.default_route.vpc_endpoint}"].endpoint_id, route_table_values.default_route.vpc_endpoint_id, null)
+          #try(module.vpc_endpoint["${vpc_key}-${route_table_values.default_route.vpc_endpoint}"].endpoint_id, route_table_values.default_route.vpc_endpoint_id, null)
 
           transit_gateway_id = try(route_table_values.default_route.transit_gateway_id, null)
           #try(module.transit-gateway["${vpc_key}-${route_table_values.default_route.transit_gateway}"].transit-gateway-id, route_table_values.default_route.transit_gateway_id, null)
@@ -357,13 +357,13 @@ locals {
           #try( module.vpc-peering["${vpc_key}-${route_table_values.default_route.vpc_peering_connection}"].peering_id, route_table_values.default_route.vpc_peering_connection_id, null)
 
           core_network_arn = try(route_table_values.default_route.core_network_arn, null)
-          #try(module.nat-gateway["${vpc_key}-${route_table_values.default_route.core_network}"].core_id, route_table_values.default_route.core_network_arn, null)
+          #try(module.nat_gateway["${vpc_key}-${route_table_values.default_route.core_network}"].core_id, route_table_values.default_route.core_network_arn, null)
 
           carrier_gateway_id = try(route_table_values.default_route.carrier_gateway_id, null)
-          #try( module.nat-gateway["${vpc_key}-${route_table_values.default_route.carrier_gateway}"].ec2_nat_gateway_id, route_table_values.default_route.carrier_gateway_id, null)
+          #try( module.nat_gateway["${vpc_key}-${route_table_values.default_route.carrier_gateway}"].ec2_nat_gateway_id, route_table_values.default_route.carrier_gateway_id, null)
 
           local_gateway_id = try(route_table_values.default_route.local_gateway_id, null)
-          #try(module.nat-gateway["${vpc_key}-${route_table_values.default_route.local_gateway}"].ec2_nat_gateway_id, route_table_values.default_route.local_gateway_id, null)
+          #try(module.nat_gateway["${vpc_key}-${route_table_values.default_route.local_gateway}"].ec2_nat_gateway_id, route_table_values.default_route.local_gateway_id, null)
 
           tags = merge(local.common_tags, { Name = "${local.custom_common_name[vpc_key]}-${route_table_name}" })
         }
@@ -386,16 +386,16 @@ locals {
 
             #destination_prefix_list_id  = try(module.prefix-list["${vpc_key}-${route_table_values.route_values.destination_prefix_list}"].aws_destination_prefix_list_id, route_table_values.route_values.destination_prefix_list_id, null)
 
-            nat_gateway_id = try(module.nat-gateway["${vpc_key}-${route_table_values.route_values.nat_gateway}"].aws_nat_gateway_id, route_table_values.route_values.nat_gateway_id, null)
+            nat_gateway_id = try(module.nat_gateway["${vpc_key}-${route_table_values.route_values.nat_gateway}"].aws_nat_gateway_id, route_table_values.route_values.nat_gateway_id, null)
 
-            gateway_id = try(module.internet-gateway["${vpc_key}-${route_table_values.route_values.gateway}"].id, route_table_values.route_values.gateway_id, null)
+            gateway_id = try(module.internet_gateway["${vpc_key}-${route_table_values.route_values.gateway}"].id, route_table_values.route_values.gateway_id, null)
 
-            network_interface_id = try(module.nat-gateway["${vpc_key}-${route_table_values.route_values.network_interface}"].ec2_nat_gateway_id, route_table_values.route_values.network_interface_id, null)
+            network_interface_id = try(module.nat_gateway["${vpc_key}-${route_table_values.route_values.network_interface}"].ec2_nat_gateway_id, route_table_values.route_values.network_interface_id, null)
 
-            egress_only_gateway_id = try(module.internet-gateway["${vpc_key}-${route_table_values.route_values.egress_only_gateway}"].egress_only_id, route_table_values.route_values.egress_only_gateway_id, null)
+            egress_only_gateway_id = try(module.internet_gateway["${vpc_key}-${route_table_values.route_values.egress_only_gateway}"].egress_only_id, route_table_values.route_values.egress_only_gateway_id, null)
 
             vpc_endpoint_id = try(route_table_values.route_values.vpc_endpoint_id, null)
-            #try(module.vpc-endpoint["${vpc_key}-${route_table_values.route_values.vpc_endpoint}"].endpoint_id, route_table_values.route_values.vpc_end   point_id, null)   
+            #try(module.vpc_endpoint["${vpc_key}-${route_table_values.route_values.vpc_endpoint}"].endpoint_id, route_table_values.route_values.vpc_end   point_id, null)   
 
             transit_gateway_id = try(route_table_values.route_values.transit_gateway_id, null)
             #try(module.transit-gateway["${vpc_key}-${route_table_values.route_values.transit_gateway}"].transit-gateway-id, route_table_values.default_   route.transit_gateway_id, null)   
@@ -404,13 +404,13 @@ locals {
             #try( module.vpc-peering["${vpc_key}-${route_table_values.route_values.vpc_peering_connection}"].peering_id, route_table_values.default_rout   e.vpc_peering_connection_id, null)  
 
             core_network_arn = try(route_table_values.route_values.core_network_arn, null)
-            #try(module.nat-gateway["${vpc_key}-${route_table_values.route_values.core_network}"].core_id, route_table_values.route_values.core_network   _arn, null)   
+            #try(module.nat_gateway["${vpc_key}-${route_table_values.route_values.core_network}"].core_id, route_table_values.route_values.core_network   _arn, null)   
 
             carrier_gateway_id = try(route_table_values.route_values.carrier_gateway_id, null)
-            #try( module.nat-gateway["${vpc_key}-${route_table_values.route_values.carrier_gateway}"].ec2_nat_gateway_id, route_table_values.default_rou   te.carrier_gateway_id, null)  
+            #try( module.nat_gateway["${vpc_key}-${route_table_values.route_values.carrier_gateway}"].ec2_nat_gateway_id, route_table_values.default_rou   te.carrier_gateway_id, null)  
 
             local_gateway_id = try(route_table_values.route_values.local_gateway_id, null)
-            #try(module.nat-gateway["${vpc_key}-${route_table_values.route_values.local_gateway}"].ec2_nat_gateway_id, route_table_values.route_values.local_gateway_id, null)
+            #try(module.nat_gateway["${vpc_key}-${route_table_values.route_values.local_gateway}"].ec2_nat_gateway_id, route_table_values.route_values.local_gateway_id, null)
 
             tags = merge(local.common_tags, { Name = "${local.custom_common_name[vpc_key]}-${route_table_name}" })
           }
@@ -421,13 +421,13 @@ locals {
   create_route = merge(flatten(local.create_route_tmp)...)
 
 }
-module "route-association" {
+module "route_association" {
 
   source = "./modules/aws/terraform-aws-route-association"
 
   for_each = local.create_route_table
 
-  route_table_id       = module.route-table[each.key].id
+  route_table_id       = module.route_table[each.key].id
   create_default_route = each.value.create_default_route
   routes               = try(local.create_route[each.key], {})
   default_route        = try(local.create_default_route[each.key], { create = false })
@@ -467,7 +467,7 @@ locals {
   ]
   create_flow_logs = merge(flatten(local.create_flow_logs_tmp)...)
 }
-module "flow-logs" {
+module "flow_logs" {
 
   source = "./modules/aws/terraform-aws-flow-logs"
 
@@ -504,7 +504,7 @@ locals {
           service_name = try(endpoint_values.service_name, null)
           service_type = try(endpoint_values.service_type, null)
           route_table_ids = flatten([
-            for key in keys(local.create_route_table) : module.route-table[key].id
+            for key in keys(local.create_route_table) : module.route_table[key].id
             if length(regexall("${vpc_key}", key)) > 0
           ])
           policy              = try(endpoint_values.policy, null)
@@ -519,7 +519,7 @@ locals {
   create_endpoints = merge(flatten(local.create_endpoints_tmp)...)
 }
 
-module "vpc-endpoint" {
+module "vpc_endpoint" {
   source = "./modules/aws/terraform-aws-vpc-endpoints"
 
   for_each = var.vpc_parameters
@@ -529,8 +529,8 @@ module "vpc-endpoint" {
 
 }
 
-# module "vpc-peering" {  
-#   source = "./modules/aws/terraform-aws-vpc-endpoints"
+# module "vpc_peering" {  
+#   source = "./modules/aws/terraform-aws-vpc-peering"
 
 #   for_each = var.vpc__parameters
 
