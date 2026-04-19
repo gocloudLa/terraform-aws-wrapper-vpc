@@ -62,8 +62,8 @@ variable "tags" {
   default     = {}
 }
 
-variable "ingress_cidr_blocks" {
-  description = "CIDR blocks allowed to reach the EC2 NAT instance on all ports (security group ingress). When null, only the VPC CIDR is allowed."
-  type        = list(string)
+variable "ingress_with_cidr_blocks" {
+  description = "CIDR blocks allowed to reach the EC2 NAT instance on defined ports."
+  type        = list(map(string))
   default     = null
 }

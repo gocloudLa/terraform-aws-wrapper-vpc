@@ -32,7 +32,7 @@ module "vpc-ec2-nat-gateway" {
 
   attach_eip = lookup(var.nat_parameters, "ec2_nat_gateway_attach_eip", false)
 
-  ingress_cidr_blocks = lookup(var.nat_parameters, "ingress_cidr_blocks", null)
+  ingress_with_cidr_blocks = lookup(var.nat_parameters, "ingress_with_cidr_blocks", null)
 
   tags = var.tags
 }

@@ -87,7 +87,12 @@ module "wrapper_vpc" {
         #   # create_nat_gateway = true
         #   nat_parameters     = {
         #     ec2_nat_gateway_attach_eip = false
-        #     # ingress_cidr_blocks = "10.0.0.0/8" # Default: vpc_cidr
+        #     # ingress_with_cidr_blocks = [
+        #     #   {
+        #     #     rule = "all-all",
+        #     #     cidr_blocks = "10.100.0.0/16,10.101.0.0/16"
+        #     #   }
+        #     # ]
         #   }
         # }
       }
