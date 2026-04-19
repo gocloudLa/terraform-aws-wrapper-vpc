@@ -49,7 +49,7 @@ module "security_group" {
   description         = "Security group for Nat Gateway"
   vpc_id              = var.vpc_id
   use_name_prefix     = false
-  ingress_cidr_blocks = try(var.ingress_cidr_blocks, ["${data.aws_vpc.this[0].cidr_block}"])
+  ingress_cidr_blocks = var.ingress_cidr_blocks != null ? var.ingress_cidr_blocks : [ data.aws_vpc.this[0].cidr_block ]
   ingress_rules       = ["all-all"]
   egress_rules        = ["all-all"]
 
