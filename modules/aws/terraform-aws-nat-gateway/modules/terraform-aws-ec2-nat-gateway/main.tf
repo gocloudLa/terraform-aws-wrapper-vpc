@@ -42,18 +42,15 @@ module "ec2_instance" {
 
 module "security_group" {
   source  = "terraform-aws-modules/security-group/aws"
-  version = "5.2.0"
+  version = "5.3.1"
   count   = var.create ? 1 : 0
 
   name                = var.name
   description         = "Security group for Nat Gateway"
   vpc_id              = var.vpc_id
   use_name_prefix     = false
-  ingress_cidr_blocks = [ data.aws_vpc.this[0].cidr_block ]
-  ingress_rules       = ["all-all"]
+  ingress_with_cidr_blocks = var.ingress_with_cidr_blocks != null ? var.ingress_with_cidr_blocks : [{ rule = "all-all", cidr_blocks = data.aws_vpc.this[0].cidr_block }]
   egress_rules        = ["all-all"]
-
-  ingress_with_cidr_blocks = var.ingress_with_cidr_blocks
 
   tags = var.tags
 }

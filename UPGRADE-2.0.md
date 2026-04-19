@@ -279,7 +279,7 @@ moved {
 # EC2 NAT gateway (if used)
 moved {
   from = module.wrapper_vpc.module.vpc-ec2-nat-gateway.aws_eip.this[0]
-  to   = module.wrapper_vpc.module.nat_gateway["test-natgw"].module.vpc-ec2-nat-gateway[0].aws_eip.this[0]
+  to   = module.wrapper_vpc.module.nat_gateway["test-natgw"].module.ec2_nat_gateway[0].aws_eip.this[0]
 }
 moved {
   from = module.wrapper_vpc.module.vpc-ec2-nat-gateway.aws_route.this[0]
@@ -287,30 +287,30 @@ moved {
 }
 moved {
   from = module.wrapper_vpc.module.vpc-ec2-nat-gateway.module.ec2_instance[0].aws_iam_instance_profile.this[0]
-  to   = module.wrapper_vpc.module.nat_gateway["test-natgw"].module.vpc-ec2-nat-gateway[0].module.ec2_instance[0].aws_iam_instance_profile.this[0]
+  to   = module.wrapper_vpc.module.nat_gateway["test-natgw"].module.ec2_nat_gateway[0].module.ec2_instance[0].aws_iam_instance_profile.this[0]
 }
 moved {
   from = module.wrapper_vpc.module.vpc-ec2-nat-gateway.module.ec2_instance[0].aws_iam_role.this[0]
-  to   = module.wrapper_vpc.module.nat_gateway["test-natgw"].module.vpc-ec2-nat-gateway[0].module.ec2_instance[0].aws_iam_role.this[0]
+  to   = module.wrapper_vpc.module.nat_gateway["test-natgw"].module.ec2_nat_gateway[0].module.ec2_instance[0].aws_iam_role.this[0]
 }
 moved {
   from = module.wrapper_vpc.module.vpc-ec2-nat-gateway.module.ec2_instance[0].aws_iam_role_policy_attachment.this["AmazonSSMManagedEC2InstanceDefaultPolicy"]
-  to   = module.wrapper_vpc.module.nat_gateway["test-natgw"].module.vpc-ec2-nat-gateway[0].module.ec2_instance[0].aws_iam_role_policy_attachment.this["AmazonSSMManagedEC2InstanceDefaultPolicy"]
+  to   = module.wrapper_vpc.module.nat_gateway["test-natgw"].module.ec2_nat_gateway[0].module.ec2_instance[0].aws_iam_role_policy_attachment.this["AmazonSSMManagedEC2InstanceDefaultPolicy"]
 }
 moved {
   from = module.wrapper_vpc.module.vpc-ec2-nat-gateway.module.ec2_instance[0].aws_instance.ignore_ami[0]
-  to   = module.wrapper_vpc.module.nat_gateway["test-natgw"].module.vpc-ec2-nat-gateway[0].module.ec2_instance[0].aws_instance.ignore_ami[0]
+  to   = module.wrapper_vpc.module.nat_gateway["test-natgw"].module.ec2_nat_gateway[0].module.ec2_instance[0].aws_instance.ignore_ami[0]
 }
 moved {
   from = module.wrapper_vpc.module.vpc-ec2-nat-gateway.module.security_group[0].aws_security_group.this[0]
-  to   = module.wrapper_vpc.module.nat_gateway["test-natgw"].module.vpc-ec2-nat-gateway[0].module.security_group[0].aws_security_group.this[0]
+  to   = module.wrapper_vpc.module.nat_gateway["test-natgw"].module.ec2_nat_gateway[0].module.security_group[0].aws_security_group.this[0]
 }
 moved {
   from = module.wrapper_vpc.module.vpc-ec2-nat-gateway.module.security_group[0].aws_security_group_rule.egress_rules[0]
-  to   = module.wrapper_vpc.module.nat_gateway["test-natgw"].module.vpc-ec2-nat-gateway[0].module.security_group[0].aws_security_group_rule.egress_rules[0]
+  to   = module.wrapper_vpc.module.nat_gateway["test-natgw"].module.ec2_nat_gateway[0].module.security_group[0].aws_security_group_rule.egress_rules[0]
 }
 moved {
   from = module.wrapper_vpc.module.vpc-ec2-nat-gateway.module.security_group[0].aws_security_group_rule.ingress_rules[0]
-  to   = module.wrapper_vpc.module.nat_gateway["test-natgw"].module.vpc-ec2-nat-gateway[0].module.security_group[0].aws_security_group_rule.ingress_rules[0]
+  to   = module.wrapper_vpc.module.nat_gateway["test-natgw"].module.ec2_nat_gateway[0].module.security_group[0].aws_security_group_rule.ingress_rules[0]
 }
 ```

@@ -20,8 +20,8 @@ resource "aws_eip" "this" {
   tags   = var.tags
 }
 
-module "vpc-ec2-nat-gateway" {
-  source = "./modules/terraform-aws-vpc-ec2-nat-gateway"
+module "ec2_nat_gateway" {
+  source = "./modules/terraform-aws-ec2-nat-gateway"
 
   count = var.kind == "ec2" && var.create_nat_gateway ? 1 : 0
 
