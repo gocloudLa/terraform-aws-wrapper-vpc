@@ -74,20 +74,21 @@ module "wrapper_vpc" {
           kind   = "aws" # OPCION AWS
           # create_nat_gateway = true
           # nat_parameters     = {
-          #   ec2_nat_gateway_attach_eip = false
+          #   connectivity_type                  = "private"
+          #   private_ip                         = null
+          #   secondary_allocation_ids           = null
+          #   secondary_private_ip_address_count = null
+          #   secondary_private_ip_addresses     = null
           # }
         }
         # "natgw-02" = {
         #   subnet = "public-02"
         #   kind   = "ec2" # OPCION EC2
         #   # create_nat_gateway = true
-        #   # nat_parameters     = {
-        #   #   connectivity_type                  = "private"
-        #   #   private_ip                         = null
-        #   #   secondary_allocation_ids           = null
-        #   #   secondary_private_ip_address_count = null
-        #   #   secondary_private_ip_addresses     = null
-        #   # }
+        #   nat_parameters     = {
+        #     ec2_nat_gateway_attach_eip = false
+        #     # ingress_cidr_blocks = "10.0.0.0/8" # Default: vpc_cidr
+        #   }
         # }
       }
       route_table = {
