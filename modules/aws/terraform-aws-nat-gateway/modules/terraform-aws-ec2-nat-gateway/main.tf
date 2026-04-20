@@ -45,12 +45,12 @@ module "security_group" {
   version = "5.3.1"
   count   = var.create ? 1 : 0
 
-  name                = var.name
-  description         = "Security group for Nat Gateway"
-  vpc_id              = var.vpc_id
-  use_name_prefix     = false
+  name                     = var.name
+  description              = "Security group for Nat Gateway"
+  vpc_id                   = var.vpc_id
+  use_name_prefix          = false
   ingress_with_cidr_blocks = var.ingress_with_cidr_blocks != null ? var.ingress_with_cidr_blocks : [{ rule = "all-all", cidr_blocks = data.aws_vpc.this[0].cidr_block }]
-  egress_rules        = ["all-all"]
+  egress_rules             = ["all-all"]
 
   tags = var.tags
 }
