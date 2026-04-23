@@ -13,19 +13,19 @@ module "wrapper_vpc" {
       subnets = {
         "new1" = {
           "a" = {
-            cidr_block  = cidrsubnet("10.15.0.0/16", 4, 0)
+            cidr_block  = "10.80.192.0/20"
             az          = "a"
             route_table_id = "rtb-07598499baa060b01"
             network_acl    = "acl-0a1fc3cc329a8d3ea"
-            create_subnet  = false
+            create_subnet  = true
 
           }
-          "a" = {
-            cidr_block  = cidrsubnet("10.15.0.0/16", 4, 2)
+          "b" = {
+            cidr_block  = "10.80.208.0/20"
             az          = "b"
             route_table_id = "rtb-07598499baa060b01"
             network_acl    = "acl-0a1fc3cc329a8d3ea"
-            create_subnet  = false
+            create_subnet  = true
 
           }
         }
