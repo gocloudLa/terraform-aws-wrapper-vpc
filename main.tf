@@ -6,6 +6,7 @@ module "vpc" {
   for_each = var.vpc_parameters
 
   ## VPC Definition
+  create_vpc                           = lookup(each.value, "create_vpc", true)
   cidr_block                           = lookup(each.value, "vpc_cidr", "") ## it does not match example value
   use_ipam_pool                        = lookup(each.value, "use_ipam_pool", false)
   ipv4_ipam_pool_id                    = lookup(each.value, "ipv4_ipam_pool_id", null)
@@ -117,7 +118,11 @@ module "network_acl" {
 }
 
 resource "aws_default_network_acl" "this" {
-  for_each = var.vpc_parameters
+  for_each = {
+    for vpc_key, vpc_config in var.vpc_parameters :
+    vpc_key => vpc_config
+    if lookup(vpc_config, "create_vpc", true)
+  }
 
   default_network_acl_id = module.vpc[each.key].default_network_acl_id
 
@@ -208,7 +213,11 @@ module "route_table" {
 }
 
 resource "aws_default_route_table" "this" {
-  for_each = var.vpc_parameters
+  for_each = {
+    for vpc_key, vpc_config in var.vpc_parameters :
+    vpc_key => vpc_config
+    if lookup(vpc_config, "create_vpc", true)
+  }
 
   default_route_table_id = module.vpc[each.key].default_route_table_id
 
@@ -228,7 +237,8 @@ locals {
         {
           "${vpc_key}-${subnet_group_name}-${subnet_name}" = {
             create_subnet     = lookup(subnet_values, "create_subnet", true)
-            vpc_id            = module.vpc[vpc_key].vpc_id
+            vpc_id            = coalesce(try(module.vpc[vpc_key].vpc_id, null), lookup(vpc_config, "vpc_id", null))
+            # vpc_id = try( vpc_config.vpc_id, module.vpc[vpc_key].vpc_id, "")
             cidr_block        = lookup(subnet_values, "cidr_block", null)
             availability_zone = "${data.aws_region.current.region}${subnet_values.az}"
             ## Configurations
@@ -249,9 +259,9 @@ locals {
             customer_owned_ipv4_pool        = lookup(subnet_values, "customer_owned_ipv4_pool", null)
             outpost_arn                     = lookup(subnet_values, "outpost_arn", null)
 
-            route_table = lookup(subnet_values, "route_table", "") != "" ? module.route_table["${vpc_key}-${subnet_values.route_table}"].id : ""
+            route_table = try(module.route_table["${vpc_key}-${subnet_values.route_table}"].id, subnet_values.route_table_id, "")
             attach_nacl = lookup(subnet_values, "network_acl", "") != "" ? true : false
-            network_acl = lookup(subnet_values, "network_acl", "") != "" ? module.network_acl["${vpc_key}-${subnet_values.network_acl}"].id : ""
+            network_acl = try(module.network_acl["${vpc_key}-${subnet_values.network_acl}"].id, subnet_values.network_acl_id, "")
 
             tags = lookup(subnet_values, "tags", merge(local.common_tags, { Name = "${local.custom_common_name[vpc_key]}-${subnet_group_name}-${subnet_name}" }))
 

@@ -1,13 +1,13 @@
 output "vpc_id" {
-  value = aws_vpc.this.id
+  value = try(aws_vpc.this[0].id, null)
 }
 
 output "vpc_arn" {
-  value = aws_vpc.this.arn
+  value = try(aws_vpc.this[0].arn, null)
 }
 
 output "vpc_name" {
-  value = aws_vpc.this.tags_all.Name
+  value = try(aws_vpc.this[0].tags_all.Name, null)
 }
 
 # output "dhcp_options_id" {
@@ -19,13 +19,13 @@ output "vpc_name" {
 # }
 
 output "security_group_id" {
-  value = aws_default_security_group.default.id
+  value = try(aws_default_security_group.default[0].id, null)
 }
 
 output "default_route_table_id" {
-  value = aws_vpc.this.default_route_table_id
+  value = try(aws_vpc.this[0].default_route_table_id, null)
 }
 
 output "default_network_acl_id" {
-  value = aws_vpc.this.default_network_acl_id
+  value = try(aws_vpc.this[0].default_network_acl_id, null)
 }

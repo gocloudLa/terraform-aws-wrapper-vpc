@@ -16,7 +16,7 @@ module "wrapper_vpc" {
             cidr_block  = "10.80.192.0/20"
             az          = "a"
             route_table_id = "rtb-07598499baa060b01"
-            network_acl    = "acl-0a1fc3cc329a8d3ea"
+            network_acl_id    = "acl-0a1fc3cc329a8d3ea"
             create_subnet  = true
 
           }
@@ -24,7 +24,7 @@ module "wrapper_vpc" {
             cidr_block  = "10.80.208.0/20"
             az          = "b"
             route_table_id = "rtb-07598499baa060b01"
-            network_acl    = "acl-0a1fc3cc329a8d3ea"
+            network_acl_id    = "acl-0a1fc3cc329a8d3ea"
             create_subnet  = true
 
           }
