@@ -2,6 +2,7 @@
 # VPC Definition
 ################################################################################
 resource "aws_vpc" "this" {
+  count = var.create_vpc ? 1 : 0
 
   cidr_block = var.use_ipam_pool ? null : var.cidr_block
 
@@ -26,10 +27,10 @@ resource "aws_vpc" "this" {
 # IPV4 CIDR Block Definition
 ################################################################################
 resource "aws_vpc_ipv4_cidr_block_association" "this" {
-  count = length(var.secondary_cidr_blocks) > 0 ? length(var.secondary_cidr_blocks) : 0
+  count = var.create_vpc && length(var.secondary_cidr_blocks) > 0 ? length(var.secondary_cidr_blocks) : 0
 
   # Do not turn this into `local.vpc_id`
-  vpc_id = aws_vpc.this.id
+  vpc_id = aws_vpc.this[0].id
 
   cidr_block = element(var.secondary_cidr_blocks, count.index)
 }
@@ -39,7 +40,8 @@ resource "aws_vpc_ipv4_cidr_block_association" "this" {
 # Default SG
 ################################################################################
 resource "aws_default_security_group" "default" {
-  vpc_id = aws_vpc.this.id
+  count  = var.create_vpc ? 1 : 0
+  vpc_id = aws_vpc.this[0].id
 
   ingress {
     cidr_blocks = ["0.0.0.0/0"]
@@ -64,7 +66,7 @@ resource "aws_default_security_group" "default" {
 ################################################################################
 
 resource "aws_vpc_dhcp_options" "this" {
-  count = var.enable_dhcp_options ? 1 : 0
+  count = var.create_vpc && var.enable_dhcp_options ? 1 : 0
 
   domain_name                       = var.dhcp_options_domain_name
   domain_name_servers               = var.dhcp_options_domain_name_servers
@@ -77,8 +79,8 @@ resource "aws_vpc_dhcp_options" "this" {
 }
 
 resource "aws_vpc_dhcp_options_association" "this" {
-  count = var.enable_dhcp_options ? 1 : 0
+  count = var.create_vpc && var.enable_dhcp_options ? 1 : 0
 
-  vpc_id          = aws_vpc.this.id
+  vpc_id          = aws_vpc.this[0].id
   dhcp_options_id = aws_vpc_dhcp_options.this[0].id
 }
