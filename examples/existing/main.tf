@@ -6,7 +6,7 @@ module "wrapper_vpc" {
   # Lo esperado de este example es que se generesn en democorp.cloud-lab
   # Dos subnets dmc-lab-new-a / dmc-lab-new-b ( o similar )
   vpc_parameters = {
-    "existing" = {
+    "vpc-existing" = {
       # VPC Parameters
       vpc_id     = "vpc-0a09d7d0d1fe4acf2"
       create_vpc = false # Opcional si es necesario

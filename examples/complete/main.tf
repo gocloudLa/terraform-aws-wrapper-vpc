@@ -6,7 +6,7 @@ module "wrapper_vpc" {
   vpc_parameters = {
     "prod" = {
       # VPC Parameters
-      vpc_cidr           = "10.15.0.0/16" #Required
+      vpc_cidr           = local.vpc_cidr #Required
       custom_common_name = ""
 
       ## Default tenancy delegates the decistion of the tenancy type on the ec2 resource creation.
@@ -155,7 +155,7 @@ module "wrapper_vpc" {
       subnets = {
         "private" = {
           "a" = {
-            cidr_block  = cidrsubnet("10.15.0.0/16", 4, 0)
+            cidr_block  = cidrsubnet(local.vpc_cidr, 4, 0)
             az          = "a"
             route_table = "private"
             network_acl = "private"
@@ -181,13 +181,13 @@ module "wrapper_vpc" {
 
           }
           "b" = {
-            cidr_block  = cidrsubnet("10.15.0.0/16", 4, 1)
+            cidr_block  = cidrsubnet(local.vpc_cidr, 4, 1)
             az          = "b"
             route_table = "private"
             network_acl = "private"
           }
           "c" = {
-            cidr_block  = cidrsubnet("10.15.0.0/16", 4, 2)
+            cidr_block  = cidrsubnet(local.vpc_cidr, 4, 2)
             az          = "c"
             route_table = "private"
             network_acl = "private"
@@ -195,19 +195,19 @@ module "wrapper_vpc" {
         }
         "public" = {
           "a" = {
-            cidr_block  = cidrsubnet("10.15.0.0/16", 4, 3)
+            cidr_block  = cidrsubnet(local.vpc_cidr, 4, 3)
             az          = "a"
             route_table = "public"
             network_acl = "public"
           }
           "b" = {
-            cidr_block  = cidrsubnet("10.15.0.0/16", 4, 4)
+            cidr_block  = cidrsubnet(local.vpc_cidr, 4, 4)
             az          = "b"
             route_table = "public"
             network_acl = "public"
           }
           "c" = {
-            cidr_block  = cidrsubnet("10.15.0.0/16", 4, 5)
+            cidr_block  = cidrsubnet(local.vpc_cidr, 4, 5)
             az          = "c"
             route_table = "public"
             network_acl = "public"
@@ -215,19 +215,19 @@ module "wrapper_vpc" {
         }
         "db" = {
           "a" = {
-            cidr_block  = cidrsubnet("10.15.0.0/16", 4, 6)
+            cidr_block  = cidrsubnet(local.vpc_cidr, 4, 6)
             az          = "a"
             route_table = "private"
             network_acl = "private"
           }
           "b" = {
-            cidr_block  = cidrsubnet("10.15.0.0/16", 4, 7)
+            cidr_block  = cidrsubnet(local.vpc_cidr, 4, 7)
             az          = "b"
             route_table = "private"
             network_acl = "private"
           }
           "c" = {
-            cidr_block  = cidrsubnet("10.15.0.0/16", 4, 8)
+            cidr_block  = cidrsubnet(local.vpc_cidr, 4, 8)
             az          = "c"
             route_table = "private"
             network_acl = "private"
@@ -235,19 +235,19 @@ module "wrapper_vpc" {
         }
         "elasticache" = {
           "a" = {
-            cidr_block  = cidrsubnet("10.15.0.0/16", 4, 9)
+            cidr_block  = cidrsubnet(local.vpc_cidr, 4, 9)
             az          = "a"
             route_table = "private"
             network_acl = "private"
           }
           "b" = {
-            cidr_block  = cidrsubnet("10.15.0.0/16", 4, 10)
+            cidr_block  = cidrsubnet(local.vpc_cidr, 4, 10)
             az          = "b"
             route_table = "private"
             network_acl = "private"
           }
           "c" = {
-            cidr_block  = cidrsubnet("10.15.0.0/16", 4, 11)
+            cidr_block  = cidrsubnet(local.vpc_cidr, 4, 11)
             az          = "c"
             route_table = "private"
             network_acl = "private"
@@ -255,13 +255,13 @@ module "wrapper_vpc" {
         }
       }
       endpoints = {
-        "00" = {
+        "s3" = {
           service         = "s3"
           service_type    = "Gateway"
           route_table_ids = ["private", "public"]
           policy          = data.aws_iam_policy_document.s3_endpoint_policy.json
         },
-        "01" = {
+        "dynamodb" = {
           service         = "dynamodb"
           service_type    = "Gateway"
           route_table_ids = ["private", "public"]
