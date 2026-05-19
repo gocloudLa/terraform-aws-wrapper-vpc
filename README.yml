@@ -365,6 +365,46 @@ features:
           }
           ```
 
+  - icon: 🏷️
+    title: Tag merging and precedence
+    short_description: All resources merge tags from three layers with clear override priority
+    long_description: |
+      Every resource created by this module merges tags from three sources using `merge()`. Because Terraform's `merge()` gives precedence to later maps (last key wins), the effective priority from lowest to highest is:
+
+      1. `local.common_tags` (lowest) — platform-level tags injected by `metadata.tf` (e.g. `Environment`, `Project`, `ManagedBy`).
+      2. Auto-generated `Name` tag — computed by the wrapper as `{common_name}-{resource_key}`.
+      3. Per-entry `tags` key (highest) — user-supplied tags inside each `vpc_parameters` entry or sub-resource map.
+
+      This means a `tags` map you provide at the entry level can override any platform tag, including the `Name` tag if needed.
+    examples:
+      - title: Tag override example
+        code: |
+          ```hcl
+          vpc_parameters = {
+            "main" = {
+              vpc_cidr = "10.130.0.0/16"
+
+              # These tags override any matching key from local.common_tags
+              tags = {
+                CostCenter  = "engineering"
+                Name        = "custom-vpc-name"   # overrides the auto-generated Name
+              }
+
+              subnets = {
+                "private" = {
+                  "a" = {
+                    cidr_block  = "10.130.0.0/20"
+                    az          = "a"
+                    route_table = "private"
+                    network_acl = "private"
+                    # Subnet-level tags also follow the same merge order
+                    tags = { Team = "backend" }
+                  }
+                }
+              }
+            }
+          }
+          ```
 important_notes: |
   - Each key under `vpc_parameters` is a VPC identifier. Subnet keys are built as `{vpc_key}-{subnet_group}-{az_name}` (e.g. `main-public-us-east-1a`).
   - NAT gateway `subnet` must reference the subnet group and AZ (e.g. `public-us-east-1a`) so the module can resolve `module.subnet["{vpc_key}-{subnet}"]`.
