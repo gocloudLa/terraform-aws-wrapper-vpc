@@ -66,24 +66,24 @@ module "wrapper_base" {
         }
         "public" = {
           "a" = {
-            cidr_block  = cidrsubnet(local.vpc_cidr, 4, 3)
-            az          = "a"
-            route_table = "public"
-            network_acl = ""
+            cidr_block              = cidrsubnet(local.vpc_cidr, 4, 3)
+            az                      = "a"
+            route_table             = "public"
+            network_acl             = ""
             map_public_ip_on_launch = true
           }
           "b" = {
-            cidr_block  = cidrsubnet(local.vpc_cidr, 4, 4)
-            az          = "b"
-            route_table = "public"
-            network_acl = ""
+            cidr_block              = cidrsubnet(local.vpc_cidr, 4, 4)
+            az                      = "b"
+            route_table             = "public"
+            network_acl             = ""
             map_public_ip_on_launch = true
           }
           "c" = {
-            cidr_block  = cidrsubnet(local.vpc_cidr, 4, 5)
-            az          = "c"
-            route_table = "public"
-            network_acl = ""
+            cidr_block              = cidrsubnet(local.vpc_cidr, 4, 5)
+            az                      = "c"
+            route_table             = "public"
+            network_acl             = ""
             map_public_ip_on_launch = true
           }
         }

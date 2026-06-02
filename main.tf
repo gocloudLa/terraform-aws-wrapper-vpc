@@ -237,8 +237,8 @@ locals {
         for subnet_name, subnet_values in try(subnet_group_values, {}) :
         {
           "${vpc_key}-${subnet_group_name}-${subnet_name}" = {
-            create_subnet = lookup(subnet_values, "create_subnet", true)
-            vpc_id        = coalesce(try(module.vpc[vpc_key].vpc_id, null), lookup(vpc_config, "vpc_id", null))
+            create_subnet     = lookup(subnet_values, "create_subnet", true)
+            vpc_id            = coalesce(try(module.vpc[vpc_key].vpc_id, null), lookup(vpc_config, "vpc_id", null))
             cidr_block        = lookup(subnet_values, "cidr_block", null)
             availability_zone = "${data.aws_region.current.region}${subnet_values.az}"
             ## Configurations
