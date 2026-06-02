@@ -4,7 +4,7 @@
 Welcome to the Standard Platform — a suite of reusable and production-ready Terraform modules purpose-built for AWS environments.
 Each module encapsulates best practices, security configurations, and sensible defaults to simplify and standardize infrastructure provisioning across projects.
 
-## 📦 Module: Terraform VPC Networking Module
+## 📦 Module: Terraform VPC Module
 <p align="right"><a href="https://github.com/gocloudLa/terraform-aws-wrapper-vpc/releases/latest"><img src="https://img.shields.io/github/v/release/gocloudLa/terraform-aws-wrapper-vpc.svg?style=for-the-badge" alt="Latest Release"/></a><a href=""><img src="https://img.shields.io/github/last-commit/gocloudLa/terraform-aws-wrapper-vpc.svg?style=for-the-badge" alt="Last Commit"/></a><a href="https://registry.terraform.io/modules/gocloudLa/wrapper-vpc/aws"><img src="https://img.shields.io/badge/Terraform-Registry-7B42BC?style=for-the-badge&logo=terraform&logoColor=white" alt="Terraform Registry"/></a></p>
 The Terraform Wrapper for VPC simplifies the configuration of basic Networking services (VPC / Subnets / Route Tables / IGW / NatGW / NACL / VPC Endpoints / Flow Logs) using a structured map of VPCs and local AWS modules.
 
@@ -28,6 +28,8 @@ The Terraform Wrapper for VPC simplifies the configuration of basic Networking s
 
 - 🔗 [endpoints map](#endpoints-map) - Gateway and Interface VPC endpoints
 
+- 🏷️ [Tag merging and precedence](#tag-merging-and-precedence) - All resources merge tags from three layers with clear override priority
+
 
 
 ### 🔗 External Modules
@@ -40,74 +42,72 @@ The Terraform Wrapper for VPC simplifies the configuration of basic Networking s
 
 ## 🚀 Quick Start
 ```hcl
-module "wrapper_vpc" {
-  source = "path/to/terraform-aws-wrapper-vpc"
+vpc_parameters = {
+  "prod" = {
+    vpc_cidr = "10.15.0.0/16"
 
-  metadata = {
-    key = {
-      company = "myco"
-      region  = "use1"
-      env     = "prd"
+    flow_logs = {
+      "00" = {
+        enable_flow_log = false
+      }
     }
-    environment = "Production"
-    common_name = "myco-prd"  # optional; defaults to company-env
-    common_tags = {}          # optional
-  }
-
-  vpc_parameters = {
-    "main" = {
-      vpc_cidr = "10.130.0.0/16"
-      internet_gateway = {
-        "00-igw" = {}
+    internet_gateway = {
+      "igw" = {}
+    }
+    nat_gateway = {
+      "natgw" = {
+        subnet = "public-a"
+        kind   = "aws"
       }
-      nat_gateway = {
-        "natgw" = {
-          subnet = "public-${data.aws_region.current.name}a"
-          kind   = "aws"
-        }
+    }
+    route_table = {
+      "private" = {
+        default_route = { nat_gateway = "natgw" }
       }
-      route_table = {
-        "00-private" = {
-          default_route = { network_interface = "natgw" }
-        }
-        "00-public" = {
-          default_route = { gateway = "00-igw" }
-        }
+      "public" = {
+        default_route = { gateway = "igw" }
       }
-      network_acl = {}
-      subnets = {
-        "private" = {
-          "${data.aws_region.current.name}a" = {
-            cidr_block  = cidrsubnet("10.130.0.0/16", 4, 0)
-            az          = "a"
-            route_table = "00-private"
-            network_acl = ""
-          }
-          "${data.aws_region.current.name}b" = {
-            cidr_block  = cidrsubnet("10.130.0.0/16", 4, 1)
-            az          = "b"
-            route_table = "00-private"
-            network_acl = ""
-          }
+    }
+    network_acl = {
+      "private" = { rules = {} }
+      "public"  = { rules = {} }
+    }
+    subnets = {
+      "private" = {
+        "a" = {
+          cidr_block  = cidrsubnet("10.15.0.0/16", 4, 0)
+          az          = "a"
+          route_table = "private"
+          network_acl = "private"
         }
-        "public" = {
-          "${data.aws_region.current.name}a" = {
-            cidr_block  = cidrsubnet("10.130.0.0/16", 4, 3)
-            az          = "a"
-            route_table = "00-public"
-            network_acl = ""
-          }
-          "${data.aws_region.current.name}b" = {
-            cidr_block  = cidrsubnet("10.130.0.0/16", 4, 4)
-            az          = "b"
-            route_table = "00-public"
-            network_acl = ""
-          }
+        "b" = {
+          cidr_block  = cidrsubnet("10.15.0.0/16", 4, 1)
+          az          = "b"
+          route_table = "private"
+          network_acl = "private"
         }
       }
-      endpoints = {
-        "00" = { service = "s3", service_type = "Gateway", route_table_ids = ["00-private", "00-public"], policy = null }
-        "01" = { service = "dynamodb", service_type = "Gateway", route_table_ids = ["00-private", "00-public"], policy = null }
+      "public" = {
+        "a" = {
+          cidr_block  = cidrsubnet("10.15.0.0/16", 4, 3)
+          az          = "a"
+          route_table = "public"
+          network_acl = "public"
+        }
+        "b" = {
+          cidr_block  = cidrsubnet("10.15.0.0/16", 4, 4)
+          az          = "b"
+          route_table = "public"
+          network_acl = "public"
+        }
+      }
+    }
+    endpoints = {
+      "00" = {
+        service         = "s3"
+        service_type    = "Gateway"
+        route_table_ids = ["private", "public"]
+        policy          = null
       }
     }
   }
@@ -119,6 +119,7 @@ module "wrapper_vpc" {
 
 ### Custom EC2 NAT Gateway
 Configure a custom EC2 instance as NAT Gateway for private subnet internet access, providing a cost-effective alternative to AWS managed NAT Gateway service.
+Use `ingress_with_cidr_blocks` inside `nat_parameters` to restrict which source CIDRs can route through the NAT instance's security group; omit the key to allow all traffic from the VPC CIDR by default.
 
 
 <details><summary>EC2 NAT Gateway Configuration</summary>
@@ -130,11 +131,17 @@ vpc_parameters = {
     internet_gateway = { "00-igw" = {} }
     nat_gateway = {
       "natgw" = {
-        subnet = "public-${data.aws_region.current.name}a"
+        subnet = "public-a"
         kind   = "ec2"
         nat_parameters = {
           ec2_nat_gateway_attach_eip = true
           connectivity_type          = "public"
+          # ingress_with_cidr_blocks = [
+          #   {
+          #     rule        = "all-all"
+          #     cidr_blocks = "10.100.0.0/16,10.101.0.0/16"
+          #   }
+          # ]
         }
       }
     }
@@ -243,7 +250,7 @@ Structure is `subnets.<group>.<az_key>`. Each subnet can set route_table, networ
 ```hcl
 subnets = {
   "private" = {
-    "${data.aws_region.current.name}a" = {
+    "a" = {
       create_subnet  = true
       cidr_block     = cidrsubnet("10.130.0.0/16", 4, 0)
       az             = "a"
@@ -262,7 +269,7 @@ subnets = {
     }
   }
   "public" = {
-    "${data.aws_region.current.name}a" = {
+    "a" = {
       create_subnet  = true
       cidr_block     = cidrsubnet("10.130.0.0/16", 4, 3)
       az             = "a"
@@ -290,7 +297,7 @@ nat_gateway = {
   "natgw" = {
     create_nat_gateway = true
     kind               = "aws"
-    subnet             = "public-${data.aws_region.current.name}a"
+    subnet             = "public-a"
     nat_parameters = {
       connectivity_type                  = "public"
       private_ip                         = null
@@ -417,16 +424,82 @@ endpoints = {
 </details>
 
 
+### Tag merging and precedence
+Every resource created by this module merges tags from three sources using `merge()`. Because Terraform's `merge()` gives precedence to later maps (last key wins), the effective priority from lowest to highest is:
+
+1. `local.common_tags` (lowest) — platform-level tags injected by `metadata.tf` (e.g. `Environment`, `Project`, `ManagedBy`).
+2. Auto-generated `Name` tag — computed by the wrapper as `{common_name}-{resource_key}`.
+3. Per-entry `tags` key (highest) — user-supplied tags inside each `vpc_parameters` entry or sub-resource map.
+
+This means a `tags` map you provide at the entry level can override any platform tag, including the `Name` tag if needed.
+
+
+<details><summary>Tag override example</summary>
+
+```hcl
+vpc_parameters = {
+  "main" = {
+    vpc_cidr = "10.130.0.0/16"
+
+    # These tags override any matching key from local.common_tags
+    tags = {
+      CostCenter  = "engineering"
+      Name        = "custom-vpc-name"   # overrides the auto-generated Name
+    }
+
+    subnets = {
+      "private" = {
+        "a" = {
+          cidr_block  = "10.130.0.0/20"
+          az          = "a"
+          route_table = "private"
+          network_acl = "private"
+          # Subnet-level tags also follow the same merge order
+          tags = { Team = "backend" }
+        }
+      }
+    }
+  }
+}
+```
+
+
+</details>
+
+
 
 
 ## 📑 Inputs
-| Name           | Description                                                                                                | Type       | Default   | Required   |
-| -------------- | ---------------------------------------------------------------------------------------------------------- | ---------- | --------- | ---------- |
-| Name           | Description                                                                                                | Type       | Default   | Required   |
-| ------         | -------------                                                                                              | ------     | --------- | ---------- |
-| metadata       | Metadata for naming and tagging (key.company, key.env, key.region, environment, common_name, common_tags). | `object`   | n/a       | yes        |
-| vpc_parameters | Map of VPC configurations. Each key is a VPC id; value supports the attributes below.                      | `map(any)` | `{}`      | no         |
-| vpc_defaults   | Default values applied across vpc_parameters (optional).                                                   | `any`      | `{}`      | no         |
+| Name                                 | Description                                                                                                      | Type           | Default     | Required |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------- | -------------- | ----------- | -------- |
+| vpc_cidr                             | CIDR block for the VPC.                                                                                          | `string`       | `""`        | yes      |
+| custom_common_name                   | Override the computed common name for this VPC entry.                                                            | `string`       | `""`        | no       |
+| use_ipam_pool                        | Allocate CIDR from an IPAM pool instead of `vpc_cidr`.                                                           | `bool`         | `false`     | no       |
+| ipv4_ipam_pool_id                    | IPAM IPv4 pool ID when `use_ipam_pool = true`.                                                                   | `string`       | `null`      | no       |
+| ipv4_netmask_length                  | Netmask length for IPAM-allocated IPv4 CIDR.                                                                     | `number`       | `null`      | no       |
+| enable_ipv6                          | Enable IPv6 on the VPC.                                                                                          | `bool`         | `false`     | no       |
+| ipv6_cidr_block                      | Static IPv6 CIDR block.                                                                                          | `string`       | `null`      | no       |
+| ipv6_ipam_pool_id                    | IPAM IPv6 pool ID.                                                                                               | `string`       | `null`      | no       |
+| ipv6_netmask_length                  | Netmask length for IPAM-allocated IPv6 CIDR.                                                                     | `number`       | `null`      | no       |
+| ipv6_cidr_block_network_border_group | Network border group for the IPv6 CIDR.                                                                          | `string`       | `null`      | no       |
+| instance_tenancy                     | Tenancy option for instances (`"default"` or `"dedicated"`).                                                     | `string`       | `"default"` | no       |
+| enable_dns_hostnames                 | Enable DNS hostnames in the VPC.                                                                                 | `bool`         | `true`      | no       |
+| enable_dns_support                   | Enable DNS resolution in the VPC.                                                                                | `bool`         | `true`      | no       |
+| enable_network_address_usage_metrics | Enable network address usage metrics.                                                                            | `bool`         | `null`      | no       |
+| enable_dhcp_options                  | Associate custom DHCP options with the VPC.                                                                      | `bool`         | `false`     | no       |
+| dhcp_options_domain_name             | Domain name for DHCP options.                                                                                    | `string`       | `""`        | no       |
+| dhcp_options_domain_name_servers     | DNS server list for DHCP options.                                                                                | `list(string)` | `[]`        | no       |
+| dhcp_options_ntp_servers             | NTP server list for DHCP options.                                                                                | `list(string)` | `[]`        | no       |
+| dhcp_options_netbios_name_servers    | NetBIOS name server list for DHCP options.                                                                       | `list(string)` | `[]`        | no       |
+| dhcp_options_netbios_node_type       | NetBIOS node type for DHCP options.                                                                              | `string`       | `""`        | no       |
+| tags                                 | Additional tags merged into all resources in this VPC.                                                           | `map(string)`  | `{}`        | no       |
+| internet_gateway                     | Map of IGW names to optional config (`create_internet_gateway`, `create_egress_only_igw`, `tags`).               | `map`          | `{}`        | no       |
+| nat_gateway                          | Map of NAT Gateway names to config (`subnet`, `kind`, `nat_parameters`, `tags`).                                 | `map`          | `{}`        | no       |
+| route_table                          | Map of route table names to config (`default_route`, `routes`, `tags`).                                          | `map`          | `{}`        | no       |
+| network_acl                          | Map of NACL names to config (`rules`, `tags`).                                                                   | `map`          | `{}`        | no       |
+| subnets                              | Nested map `subnets.<group>.<az_key>` with `cidr_block`, `az`, `route_table`, `network_acl`, and optional flags. | `map`          | `{}`        | no       |
+| endpoints                            | Map of endpoint keys to config (`service`, `service_type`, `route_table_ids`, `policy`, etc.).                   | `map`          | `{}`        | no       |
+| flow_logs                            | Map of flow log names to config (`enable_flow_log`, destination, IAM, and format options).                       | `map`          | `{}`        | no       |
 
 
 
@@ -438,7 +511,7 @@ endpoints = {
 - Each key under `vpc_parameters` is a VPC identifier. Subnet keys are built as `{vpc_key}-{subnet_group}-{az_name}` (e.g. `main-public-us-east-1a`).
 - NAT gateway `subnet` must reference the subnet group and AZ (e.g. `public-us-east-1a`) so the module can resolve `module.subnet["{vpc_key}-{subnet}"]`.
 - Route table `default_route` can use `gateway` (IGW name), `network_interface` (NAT name), or `nat_gateway` (NAT name) to set the default 0.0.0.0/0 route.
-- See `examples/00-simple-vpc` and `examples/01-complete-vpc` for full configurations.
+- See `examples/simple` and `examples/complete` for full configurations.
 
 
 
