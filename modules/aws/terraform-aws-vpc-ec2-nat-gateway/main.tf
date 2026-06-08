@@ -1,6 +1,6 @@
 module "ec2_instance" {
   source  = "terraform-aws-modules/ec2-instance/aws"
-  version = "6.3.0"
+  version = "6.4.0"
   count   = var.create ? 1 : 0
 
   name                   = var.name
@@ -42,7 +42,7 @@ module "ec2_instance" {
 
 module "security_group" {
   source  = "terraform-aws-modules/security-group/aws"
-  version = "5.3.1"
+  version = "6.0.0"
   count   = var.create ? 1 : 0
 
   name                = var.name
