@@ -86,7 +86,7 @@ module "wrapper_vpc" {
         #   kind   = "ec2" # OPCION EC2
         #   # create_nat_gateway = true
         #   nat_parameters     = {
-        #     ec2_nat_gateway_attach_eip = false
+        #     ec2_nat_gateway_attach_eip = true
         #     # ingress_with_cidr_blocks = [
         #     #   {
         #     #     rule = "all-all",
@@ -269,6 +269,94 @@ module "wrapper_vpc" {
         }
       }
     }
+    "simple" = {
+      vpc_cidr = local.vpc_cidr
+      internet_gateway = {
+        "igw" = {}
+      }
+      nat_gateway = {
+        "natgw" = {
+          subnet = "public-a"
+          kind   = "ec2"
+          nat_parameters = {
+            ec2_nat_gateway_attach_eip = true,
+            connectivity_type          = "public"
+          }
+        }
+      }
+      route_table = {
+        "private" = {
+          routes        = {}
+          default_route = { network_interface = "natgw" }
+        }
+        "public" = {
+          routes        = {}
+          default_route = { gateway = "igw" }
+        }
+      }
+      network_acl = {
+      }
+      subnets = {
+        "private" = {
+          "a" = { cidr_block = cidrsubnet(local.vpc_cidr, 4, 0), az = "a", route_table = "private", network_acl = "" }
+          "b" = { cidr_block = cidrsubnet(local.vpc_cidr, 4, 1), az = "b", route_table = "private", network_acl = "" }
+          "c" = { cidr_block = cidrsubnet(local.vpc_cidr, 4, 2), az = "c", route_table = "private", network_acl = "" }
+        }
+        "public" = {
+          "a" = { cidr_block = cidrsubnet(local.vpc_cidr, 4, 3), az = "a", route_table = "public", network_acl = "", map_public_ip_on_launch = true }
+          "b" = { cidr_block = cidrsubnet(local.vpc_cidr, 4, 4), az = "b", route_table = "public", network_acl = "", map_public_ip_on_launch = true }
+          "c" = { cidr_block = cidrsubnet(local.vpc_cidr, 4, 5), az = "c", route_table = "public", network_acl = "", map_public_ip_on_launch = true }
+        }
+        "db" = {
+          "a" = { cidr_block = cidrsubnet(local.vpc_cidr, 4, 6), az = "a", route_table = "private", network_acl = "" }
+          "b" = { cidr_block = cidrsubnet(local.vpc_cidr, 4, 7), az = "b", route_table = "private", network_acl = "" }
+          "c" = { cidr_block = cidrsubnet(local.vpc_cidr, 4, 8), az = "c", route_table = "private", network_acl = "" }
+        }
+        "elasticache" = {
+          "a" = { cidr_block = cidrsubnet(local.vpc_cidr, 4, 9), az = "a", route_table = "private", network_acl = "" }
+          "b" = { cidr_block = cidrsubnet(local.vpc_cidr, 4, 10), az = "b", route_table = "private", network_acl = "" }
+          "c" = { cidr_block = cidrsubnet(local.vpc_cidr, 4, 11), az = "c", route_table = "private", network_acl = "" }
+        }
+      }
+      endpoints = {
+        "s3" = {
+          service         = "s3"
+          service_type    = "Gateway"
+          route_table_ids = ["private", "public"]
+          policy          = data.aws_iam_policy_document.s3_endpoint_policy.json
+        },
+        "dynamodb" = {
+          service         = "dynamodb"
+          service_type    = "Gateway"
+          route_table_ids = ["private", "public"]
+          policy          = data.aws_iam_policy_document.dynamodb_endpoint_policy.json
+        }
+      }
+    }
+    "vpc-existing" = {
+      # VPC Parameters
+      vpc_id     = "vpc-0a09d7d0d1fe4acf2"
+      create_vpc = false # Opcional si es necesario
+      subnets = {
+        "new1" = {
+          "a" = {
+            cidr_block     = "10.80.192.0/20"
+            az             = "a"
+            route_table_id = "rtb-07598499baa060b01"
+            network_acl_id = "acl-0a1fc3cc329a8d3ea"
+            create_subnet  = true
 
+          }
+          "b" = {
+            cidr_block     = "10.80.208.0/20"
+            az             = "b"
+            route_table_id = "rtb-07598499baa060b01"
+            network_acl_id = "acl-0a1fc3cc329a8d3ea"
+            create_subnet  = true
+
+          }
+        }
+      }
+    }
   }
 }
