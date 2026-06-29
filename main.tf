@@ -1,188 +1,540 @@
+## VPC
 module "vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "6.6.0"
 
-  create_vpc = lookup(var.vpc_parameters, "create_vpc", true)
+  source = "./modules/aws/terraform-aws-vpc"
 
-  name                  = lookup(var.vpc_parameters, "name", local.common_name)
-  cidr                  = lookup(var.vpc_parameters, "vpc_cidr", "")
-  secondary_cidr_blocks = lookup(var.vpc_parameters, "secondary_cidr_blocks", [])
+  for_each = var.vpc_parameters
 
-  azs = ["${local.metadata.aws_region}a", "${local.metadata.aws_region}b", "${local.metadata.aws_region}c"]
+  ## VPC Definition
+  create_vpc                           = lookup(each.value, "create_vpc", true)
+  cidr_block                           = lookup(each.value, "vpc_cidr", "") ## it does not match example value
+  use_ipam_pool                        = lookup(each.value, "use_ipam_pool", false)
+  ipv4_ipam_pool_id                    = lookup(each.value, "ipv4_ipam_pool_id", null)
+  ipv4_netmask_length                  = lookup(each.value, "ipv4_netmask_length", null)
+  enable_ipv6                          = lookup(each.value, "enable_ipv6", false)
+  ipv6_cidr_block                      = lookup(each.value, "ipv6_cidr_block", null)
+  ipv6_ipam_pool_id                    = lookup(each.value, "ipv6_ipam_pool_id", null)
+  ipv6_netmask_length                  = lookup(each.value, "ipv6_netmask_length", null)
+  ipv6_cidr_block_network_border_group = lookup(each.value, "ipv6_cidr_block_network_border_group", null)
+  instance_tenancy                     = lookup(each.value, "instance_tenancy", "default")
+  enable_dns_hostnames                 = lookup(each.value, "enable_dns_hostnames", true)
+  enable_dns_support                   = lookup(each.value, "enable_dns_support", true)
+  enable_network_address_usage_metrics = lookup(each.value, "enable_network_address_usage_metrics", null)
 
-  private_subnets          = lookup(var.vpc_parameters, "private_subnets", [])
-  private_subnet_names     = lookup(var.vpc_parameters, "private_subnet_names", [])
-  public_subnets           = lookup(var.vpc_parameters, "public_subnets", [])
-  public_subnet_names      = lookup(var.vpc_parameters, "public_subnet_names", [])
-  database_subnets         = lookup(var.vpc_parameters, "database_subnets", [])
-  database_subnet_names    = lookup(var.vpc_parameters, "database_subnet_names", [])
-  elasticache_subnets      = lookup(var.vpc_parameters, "elasticache_subnets", [])
-  elasticache_subnet_names = lookup(var.vpc_parameters, "elasticache_subnet_names", [])
+  ## DHCP Options
+  enable_dhcp_options               = lookup(each.value, "enable_dhcp_options", false)
+  dhcp_options_domain_name          = lookup(each.value, "dhcp_options_domain_name", "")
+  dhcp_options_domain_name_servers  = lookup(each.value, "dhcp_options_domain_name_servers", [])
+  dhcp_options_ntp_servers          = lookup(each.value, "dhcp_options_ntp_servers", [])
+  dhcp_options_netbios_name_servers = lookup(each.value, "dhcp_options_netbios_name_servers", [])
+  dhcp_options_netbios_node_type    = lookup(each.value, "dhcp_options_netbios_node_type", "")
 
-  enable_ipv6 = lookup(var.vpc_parameters, "enable_ipv6", false)
+  tags = merge(local.common_tags, { Name = "${local.custom_common_name[each.key]}" }, try(each.value.tags, {}))
 
-  manage_default_vpc = lookup(var.vpc_parameters, "manage_default_vpc", false)
-
-  create_igw = lookup(var.vpc_parameters, "create_igw", true)
-  igw_tags   = lookup(var.vpc_parameters, "igw_tags", {})
-
-  instance_tenancy     = lookup(var.vpc_parameters, "instance_tenancy", "default")
-  enable_dns_hostnames = lookup(var.vpc_parameters, "enable_dns_hostnames", true)
-  enable_dns_support   = lookup(var.vpc_parameters, "enable_dns_support", true)
-
-  map_public_ip_on_launch = lookup(var.vpc_parameters, "map_public_ip_on_launch", true)
-
-  #nat gateway
-  enable_nat_gateway     = lookup(var.vpc_parameters, "enable_nat_gateway", false)
-  single_nat_gateway     = lookup(var.vpc_parameters, "single_nat_gateway", true)
-  one_nat_gateway_per_az = lookup(var.vpc_parameters, "one_nat_gateway_per_az", false)
-  reuse_nat_ips          = lookup(var.vpc_parameters, "reuse_nat_ips", false)
-  external_nat_ip_ids    = lookup(var.vpc_parameters, "external_nat_ip_ids", [])
-  nat_gateway_tags       = lookup(var.vpc_parameters, "nat_gateway_tags", {})
-  nat_eip_tags           = lookup(var.vpc_parameters, "nat_eip_tags", {})
-
-  create_private_nat_gateway_route   = lookup(var.vpc_parameters, "create_private_nat_gateway_route", true)
-  vpc_block_public_access_options    = lookup(var.vpc_parameters, "vpc_block_public_access_options", {})
-  vpc_block_public_access_exclusions = lookup(var.vpc_parameters, "vpc_block_public_access_exclusions", {})
-
-  # network_acl default config
-  manage_default_network_acl    = lookup(var.vpc_parameters, "manage_default_network_acl", true)
-  default_network_acl_tags      = lookup(var.vpc_parameters, "default_network_acl_tags", { Name = "${local.common_name}-default" })
-  public_dedicated_network_acl  = lookup(var.vpc_parameters, "public_dedicated_network_acl", false) // ?
-  public_inbound_acl_rules      = lookup(var.vpc_parameters, "public_inbound_acl_rules", [])
-  public_outbound_acl_rules     = lookup(var.vpc_parameters, "public_outbound_acl_rules", [])
-  private_dedicated_network_acl = lookup(var.vpc_parameters, "private_dedicated_network_acl", false) //?
-  private_inbound_acl_rules     = lookup(var.vpc_parameters, "private_inbound_acl_rules", [])
-  private_outbound_acl_rules    = lookup(var.vpc_parameters, "private_outbound_acl_rules", [])
-
-
-  # route_table default config
-  manage_default_route_table           = lookup(var.vpc_parameters, "manage_default_route_table", true)
-  default_route_table_propagating_vgws = lookup(var.vpc_parameters, "default_route_table_propagating_vgws", [])
-  default_route_table_routes           = lookup(var.vpc_parameters, "default_route_table_routes", [])
-  default_route_table_tags             = lookup(var.vpc_parameters, "default_route_table_tags", { Name = "${local.common_name}-default" })
-  public_route_table_tags              = lookup(var.vpc_parameters, "public_route_table_tags", {})
-  private_route_table_tags             = lookup(var.vpc_parameters, "private_route_table_tags", {})
-
-
-  # sg_default config
-  manage_default_security_group  = lookup(var.vpc_parameters, "manage_default_security_group", true)
-  default_security_group_ingress = lookup(var.vpc_parameters, "default_security_group_ingress", [])
-  default_security_group_egress  = lookup(var.vpc_parameters, "default_security_group_egress", [])
-  default_security_group_tags    = lookup(var.vpc_parameters, "default_security_group_tags", { Name = "${local.common_name}-default" })
-
-  # vpn_gateway config
-  enable_vpn_gateway                 = lookup(var.vpc_parameters, "enable_vpn_gateway", false)
-  vpn_gateway_id                     = lookup(var.vpc_parameters, "vpn_gateway_id", "")
-  vpn_gateway_az                     = lookup(var.vpc_parameters, "vpn_gateway_az", null)
-  propagate_private_route_tables_vgw = lookup(var.vpc_parameters, "propagate_private_route_tables_vgw", false)
-  propagate_public_route_tables_vgw  = lookup(var.vpc_parameters, "propagate_public_route_tables_vgw", false)
-
-  # dhcp_options
-  enable_dhcp_options               = lookup(var.vpc_parameters, "enable_dhcp_options", false)
-  dhcp_options_domain_name          = lookup(var.vpc_parameters, "dhcp_options_domain_name", "")
-  dhcp_options_domain_name_servers  = lookup(var.vpc_parameters, "dhcp_options_domain_name_servers", [])
-  dhcp_options_ntp_servers          = lookup(var.vpc_parameters, "dhcp_options_ntp_servers", [])
-  dhcp_options_netbios_name_servers = lookup(var.vpc_parameters, "dhcp_options_netbios_name_servers", [])
-  dhcp_options_netbios_node_type    = lookup(var.vpc_parameters, "dhcp_options_netbios_node_type", "")
-
-
-  # redshift
-  enable_public_redshift = lookup(var.vpc_parameters, "enable_public_redshift", false)
-
-  # flow_log config
-  enable_flow_log                                 = lookup(var.vpc_parameters, "enable_flow_log", false)
-  create_flow_log_cloudwatch_iam_role             = lookup(var.vpc_parameters, "create_flow_log_cloudwatch_iam_role", false)
-  create_flow_log_cloudwatch_log_group            = lookup(var.vpc_parameters, "create_flow_log_cloudwatch_log_group", false)
-  vpc_flow_log_permissions_boundary               = lookup(var.vpc_parameters, "vpc_flow_log_permissions_boundary", null)
-  flow_log_traffic_type                           = lookup(var.vpc_parameters, "flow_log_traffic_type", "")
-  flow_log_destination_type                       = lookup(var.vpc_parameters, "flow_log_destination_type", "")
-  flow_log_log_format                             = lookup(var.vpc_parameters, "flow_log_log_format", null)
-  flow_log_destination_arn                        = lookup(var.vpc_parameters, "flow_log_destination_arn", "")
-  flow_log_cloudwatch_iam_role_arn                = lookup(var.vpc_parameters, "enable_public_redshift", "")
-  flow_log_cloudwatch_log_group_name_prefix       = lookup(var.vpc_parameters, "flow_log_cloudwatch_log_group_name_prefix", "")
-  flow_log_cloudwatch_log_group_retention_in_days = lookup(var.vpc_parameters, "flow_log_cloudwatch_log_group_retention_in_days", null)
-  flow_log_cloudwatch_log_group_kms_key_id        = lookup(var.vpc_parameters, "flow_log_cloudwatch_log_group_kms_key_id", null)
-  flow_log_max_aggregation_interval               = lookup(var.vpc_parameters, "flow_log_max_aggregation_interval", 600)
-  flow_log_hive_compatible_partitions             = lookup(var.vpc_parameters, "flow_log_hive_compatible_partitions", false)
-  flow_log_per_hour_partition                     = lookup(var.vpc_parameters, "flow_log_per_hour_partition", false)
-  flow_log_cloudwatch_iam_role_conditions         = lookup(var.vpc_parameters, "flow_log_cloudwatch_iam_role_conditions", [])
-
-  # Elasticache config
-  create_elasticache_subnet_group       = lookup(var.vpc_parameters, "create_elasticache_subnet_group", false)
-  elasticache_subnet_group_name         = lookup(var.vpc_parameters, "elasticache_subnet_group_name", null)
-  elasticache_subnet_group_tags         = lookup(var.vpc_parameters, "elasticache_subnet_group_tags", {})
-  create_elasticache_subnet_route_table = lookup(var.vpc_parameters, "create_elasticache_subnet_route_table", false)
-  elasticache_route_table_tags          = lookup(var.vpc_parameters, "elasticache_route_table_tags", {})
-  elasticache_dedicated_network_acl     = lookup(var.vpc_parameters, "elasticache_dedicated_network_acl", false) // ?
-  elasticache_inbound_acl_rules         = lookup(var.vpc_parameters, "elasticache_inbound_acl_rules", [])
-  elasticache_outbound_acl_rules        = lookup(var.vpc_parameters, "elasticache_outbound_acl_rules", [])
-  elasticache_acl_tags                  = lookup(var.vpc_parameters, "elasticache_acl_tags", {})
-
-  # DB config
-  create_database_internet_gateway_route = lookup(var.vpc_parameters, "create_database_internet_gateway_route", false)
-  create_database_nat_gateway_route      = lookup(var.vpc_parameters, "create_database_nat_gateway_route", false)
-  create_database_subnet_group           = lookup(var.vpc_parameters, "create_database_subnet_group", false)
-  database_subnet_group_name             = lookup(var.vpc_parameters, "database_subnet_group_name", "")
-  create_database_subnet_route_table     = lookup(var.vpc_parameters, "create_database_subnet_route_table", false)
-  database_dedicated_network_acl         = lookup(var.vpc_parameters, "database_dedicated_network_acl", false) // ?
-  database_inbound_acl_rules             = lookup(var.vpc_parameters, "database_inbound_acl_rules", [])
-  database_outbound_acl_rules            = lookup(var.vpc_parameters, "database_outbound_acl_rules", [])
-  database_acl_tags                      = lookup(var.vpc_parameters, "database_acl_tags", {})
-
-  tags = merge(local.common_tags, try(var.vpc_parameters.tags, var.vpc_defaults.tags, null))
 }
 
+## Internet Gateway
+locals {
+  create_internet_gateway_tmp = [
+    for vpc_key, vpc_config in var.vpc_parameters :
+    [
+      for internet_gateway_name, internet_gateway_values in try(vpc_config.internet_gateway, {}) :
+      {
+        "${vpc_key}-${internet_gateway_name}" = merge(internet_gateway_values,
+          {
+            create_internet_gateway = lookup(internet_gateway_values, "create_internet_gateway", true)
+            vpc_key                 = vpc_key,
+            enable_ipv6             = lookup(vpc_config, "enable_ipv6", false)
+            create_egress_only_igw  = lookup(internet_gateway_values, "create_egress_only_igw", false)
+            tags = merge(
+              local.common_tags,
+              {
+                Name = (
+                  internet_gateway_name == "" ?
+                  local.custom_common_name[vpc_key] :
+                  "${local.custom_common_name[vpc_key]}-${internet_gateway_name}"
+                )
+              },
+              try(internet_gateway_values.tags, {})
+            )
+        })
+      } if((length(lookup(vpc_config, "internet_gateway", {})) > 0))
+    ]
+  ]
+  create_internet_gateway = merge(flatten(local.create_internet_gateway_tmp)...)
+}
+module "internet_gateway" {
 
-module "vpc-endpoint" {
-  source  = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
-  version = "6.6.0"
+  source = "./modules/aws/terraform-aws-internet-gateway"
 
-  create = lookup(var.vpc_parameters, "create_vpc", true) && (lookup(var.vpc_parameters, "create_s3_vpc_endpoint", true) || lookup(var.vpc_parameters, "create_dynamodb_vpc_endpoint", true))
+  for_each = local.create_internet_gateway
 
-  vpc_id = try(module.vpc.vpc_id, null)
+  create_internet_gateway = each.value.create_internet_gateway
+  vpc_id                  = module.vpc[each.value.vpc_key].vpc_id
+  create_egress_only_igw  = each.value.create_egress_only_igw
+  enable_ipv6             = each.value.enable_ipv6
 
-  security_group_ids = try([data.aws_security_group.default[0].id], [])
+  tags = each.value.tags
+}
 
-  endpoints = {
-    s3 = {
-      create          = lookup(var.vpc_parameters, "create_s3_vpc_endpoint", true)
-      service         = "s3"
-      service_type    = "Gateway"
-      route_table_ids = try(flatten([module.vpc.intra_route_table_ids, module.vpc.private_route_table_ids, module.vpc.public_route_table_ids]), [])
-      policy          = data.aws_iam_policy_document.s3_endpoint_policy.json
-      tags            = lookup(var.vpc_parameters, "vpc_endpoint_s3_tags", { Name = "${local.common_name}-s3-vpc-endpoint" })
-    },
-    dynamodb = {
-      create          = lookup(var.vpc_parameters, "create_dynamodb_vpc_endpoint", true)
-      service         = "dynamodb"
-      service_type    = "Gateway"
-      route_table_ids = try(flatten([module.vpc.intra_route_table_ids, module.vpc.private_route_table_ids, module.vpc.public_route_table_ids]), [])
-      policy          = data.aws_iam_policy_document.dynamodb_endpoint_policy.json
-      tags            = { Name = "${local.common_name}-dynamodb-vpc-endpoint" }
-    },
+## Network ACL rules
+locals {
+  create_network_acl_tmp = [
+    for vpc_key, vpc_config in var.vpc_parameters :
+    [
+      for network_acl_name, network_acl_values in try(vpc_config.network_acl, {}) :
+      {
+        "${vpc_key}-${network_acl_name}" = {
+          create_network_acl = lookup(network_acl_values, "create_network_acl", true)
+          vpc_key            = vpc_key
+          rules              = lookup(network_acl_values, "rules", {})
+          tags               = merge(local.common_tags, { Name = "${local.custom_common_name[vpc_key]}-${network_acl_name}" }, try(network_acl_values.tags, {}))
+        }
+      } if((length(lookup(vpc_config, "network_acl", {})) > 0))
+    ]
+  ]
+  create_network_acl = merge(flatten(local.create_network_acl_tmp)...)
+
+  subnets_without_custom_nacl = flatten([
+    for vpc_key, vpc_config in var.vpc_parameters : [
+      for subnet_group_name, subnet_group_values in try(vpc_config.subnets, {}) : [
+        for subnet_name, subnet_values in try(subnet_group_values, {}) :
+        "${vpc_key}-${subnet_group_name}-${subnet_name}"
+        if lookup(subnet_values, "network_acl", "") == ""
+      ]
+    ]
+  ])
+}
+module "network_acl" {
+
+  source = "./modules/aws/terraform-aws-network-acl"
+
+  for_each = local.create_network_acl
+
+  create_network_acl = lookup(each.value, "create_network_acl", true)
+  vpc_id             = module.vpc[each.value.vpc_key].vpc_id
+  rules              = lookup(each.value, "rules", {})
+
+  tags = each.value.tags
+}
+
+resource "aws_default_network_acl" "this" {
+  for_each = {
+    for vpc_key, vpc_config in var.vpc_parameters :
+    vpc_key => vpc_config
+    if lookup(vpc_config, "create_vpc", true)
   }
 
-  tags = merge(local.common_tags, try(var.vpc_parameters.tags, var.vpc_defaults.tags, null))
+  default_network_acl_id = module.vpc[each.key].default_network_acl_id
+
+  subnet_ids = [
+    for key in local.subnets_without_custom_nacl :
+    module.subnet[key].id
+    if startswith(key, "${each.key}-") # filters only subnets for this VPC
+  ]
+  egress {
+    action          = "allow"
+    cidr_block      = null
+    from_port       = 0
+    icmp_code       = 0
+    icmp_type       = 0
+    ipv6_cidr_block = "::/0"
+    protocol        = "-1"
+    rule_no         = 101
+    to_port         = 0
+  }
+  egress {
+    action          = "allow"
+    cidr_block      = "0.0.0.0/0"
+    from_port       = 0
+    icmp_code       = 0
+    icmp_type       = 0
+    ipv6_cidr_block = null
+    protocol        = "-1"
+    rule_no         = 100
+    to_port         = 0
+  }
+  ingress {
+    action          = "allow"
+    cidr_block      = null
+    from_port       = 0
+    icmp_code       = 0
+    icmp_type       = 0
+    ipv6_cidr_block = "::/0"
+    protocol        = "-1"
+    rule_no         = 101
+    to_port         = 0
+  }
+  ingress {
+    action          = "allow"
+    cidr_block      = "0.0.0.0/0"
+    from_port       = 0
+    icmp_code       = 0
+    icmp_type       = 0
+    ipv6_cidr_block = null
+    protocol        = "-1"
+    rule_no         = 100
+    to_port         = 0
+  }
+  lifecycle {
+    ignore_changes = [subnet_ids]
+  }
+
+  tags = merge(local.common_tags, { Name = "${local.custom_common_name[each.key]}-default" }, try(each.value.tags, {}))
 }
 
-module "vpc-ec2-nat-gateway" {
-  source = "./modules/aws/terraform-aws-vpc-ec2-nat-gateway"
+## Route Table
+locals {
+  create_route_table_tmp = [
+    for vpc_key, vpc_config in var.vpc_parameters :
+    [
+      for route_table_name, route_table_values in try(vpc_config.route_table, {}) :
+      {
+        "${vpc_key}-${route_table_name}" = {
+          vpc_key              = vpc_key
+          create_route_table   = lookup(route_table_values, "create_route_table", true)
+          create_default_route = lookup(route_table_values, "default_route", {}) == {} ? false : true
+          tags                 = merge(local.common_tags, { Name = "${local.custom_common_name[vpc_key]}-${route_table_name}" }, try(route_table_values.tags, {}))
+        }
+      } if((length(lookup(vpc_config, "route_table", {})) > 0))
+    ]
+  ]
+  create_route_table = merge(flatten(local.create_route_table_tmp)...)
+}
+module "route_table" {
 
-  # Condition to Enable:
-  # enable_ec2_nat_gateway = true
-  # enable_nat_gateway = false
+  source = "./modules/aws/terraform-aws-route-table"
 
-  create = lookup(var.vpc_parameters, "enable_ec2_nat_gateway", false) && !lookup(var.vpc_parameters, "enable_nat_gateway", false) ? true : false
+  for_each = local.create_route_table
 
-  name = "${local.common_name}-natgw"
+  create_route_table = each.value.create_route_table
+  vpc_id             = module.vpc[each.value.vpc_key].vpc_id
 
-  vpc_id            = try(module.vpc.vpc_id, null)
-  route_table_id    = try(tolist(module.vpc.private_route_table_ids)[0], null)
-  availability_zone = try(element(module.vpc.azs, 0), null)
-  subnet_id         = try(element(module.vpc.public_subnets, 0), null)
+  tags = each.value.tags
+}
 
-  attach_eip = lookup(var.vpc_parameters, "ec2_nat_gateway_attach_eip", false)
+resource "aws_default_route_table" "this" {
+  for_each = {
+    for vpc_key, vpc_config in var.vpc_parameters :
+    vpc_key => vpc_config
+    if lookup(vpc_config, "create_vpc", true)
+  }
 
-  tags = merge(local.common_tags, try(var.vpc_parameters.tags, var.vpc_defaults.tags, null))
+  default_route_table_id = module.vpc[each.key].default_route_table_id
+
+  route = []
+
+  tags = merge(local.common_tags, { Name = "${local.custom_common_name[each.key]}-default" }, try(each.value.tags, {}))
+}
+
+## Subnets
+locals {
+  create_subnets_tmp = [
+    for vpc_key, vpc_config in var.vpc_parameters :
+    [
+      for subnet_group_name, subnet_group_values in try(vpc_config.subnets, {}) :
+      [
+        for subnet_name, subnet_values in try(subnet_group_values, {}) :
+        {
+          "${vpc_key}-${subnet_group_name}-${subnet_name}" = {
+            create_subnet     = lookup(subnet_values, "create_subnet", true)
+            vpc_id            = coalesce(try(module.vpc[vpc_key].vpc_id, null), lookup(vpc_config, "vpc_id", null))
+            cidr_block        = lookup(subnet_values, "cidr_block", null)
+            availability_zone = "${data.aws_region.current.region}${subnet_values.az}"
+            ## Configurations
+            enable_dns64                                   = lookup(subnet_values, "enable_dns64", false)
+            enable_resource_name_dns_aaaa_record_on_launch = lookup(subnet_values, "enable_resource_name_dns_aaaa_record_on_launch", false)
+            enable_resource_name_dns_a_record_on_launch    = lookup(subnet_values, "enable_resource_name_dns_a_record_on_launch", false)
+            private_dns_hostname_type_on_launch            = lookup(subnet_values, "private_dns_hostname_type_on_launch", null)
+            map_public_ip_on_launch                        = lookup(subnet_values, "map_public_ip_on_launch", false)
+            enable_lni_at_device_index                     = lookup(subnet_values, "enable_lni_at_device_index", null)
+
+            ## IPv6
+            ipv6_native                     = lookup(subnet_values, "outpost_arn", null)
+            ipv6_cidr_block                 = lookup(subnet_values, "outpost_arn", null)
+            assign_ipv6_address_on_creation = lookup(subnet_values, "outpost_arn", null)
+
+            ## Customer owned IPs
+            map_customer_owned_ip_on_launch = lookup(subnet_values, "map_customer_owned_ip_on_launch", null)
+            customer_owned_ipv4_pool        = lookup(subnet_values, "customer_owned_ipv4_pool", null)
+            outpost_arn                     = lookup(subnet_values, "outpost_arn", null)
+
+            route_table = try(module.route_table["${vpc_key}-${subnet_values.route_table}"].id, subnet_values.route_table_id, "")
+            attach_nacl = lookup(subnet_values, "network_acl", "") != "" ? true : false
+            network_acl = try(module.network_acl["${vpc_key}-${subnet_values.network_acl}"].id, subnet_values.network_acl_id, "")
+
+            tags = merge(local.common_tags, { Name = "${local.custom_common_name[vpc_key]}-${subnet_group_name}-${subnet_name}" }, try(subnet_values.tags, {}))
+
+          }
+        } if((length(lookup(vpc_config, "subnets", {})) > 0))
+      ]
+    ]
+  ]
+  create_subnets = merge(flatten(local.create_subnets_tmp)...)
+}
+module "subnet" {
+
+  source = "./modules/aws/terraform-aws-subnet"
+
+  for_each = local.create_subnets
+
+  create_subnet                                  = each.value.create_subnet
+  vpc_id                                         = each.value.vpc_id
+  cidr_block                                     = each.value.cidr_block
+  availability_zone                              = each.value.availability_zone != "" ? each.value.availability_zone : null
+  availability_zone_id                           = each.value.availability_zone == "" ? each.value.availability_zone_id : null
+  enable_dns64                                   = each.value.enable_dns64
+  enable_resource_name_dns_aaaa_record_on_launch = each.value.enable_resource_name_dns_aaaa_record_on_launch
+  enable_resource_name_dns_a_record_on_launch    = each.value.enable_resource_name_dns_a_record_on_launch
+  private_dns_hostname_type_on_launch            = each.value.private_dns_hostname_type_on_launch
+  map_public_ip_on_launch                        = each.value.map_public_ip_on_launch
+  enable_lni_at_device_index                     = each.value.enable_lni_at_device_index
+  ipv6_native                                    = each.value.outpost_arn
+  ipv6_cidr_block                                = each.value.outpost_arn
+  assign_ipv6_address_on_creation                = each.value.outpost_arn
+  map_customer_owned_ip_on_launch                = each.value.map_customer_owned_ip_on_launch
+  customer_owned_ipv4_pool                       = each.value.customer_owned_ipv4_pool
+  outpost_arn                                    = each.value.outpost_arn
+  route_table                                    = each.value.route_table
+  attach_nacl                                    = each.value.attach_nacl
+  network_acl                                    = each.value.network_acl
+  tags                                           = each.value.tags
+}
+
+## NAT Gateway
+locals {
+  create_nat_gateway_tmp = [
+    for vpc_key, vpc_config in var.vpc_parameters :
+    [
+      for nat_gateway_name, nat_gateway_values in try(vpc_config.nat_gateway, {}) :
+      {
+        "${vpc_key}-${nat_gateway_name}" = {
+          vpc_key            = "${vpc_key}"
+          create_nat_gateway = lookup(nat_gateway_values, "create_nat_gateway", true)
+          kind               = lookup(nat_gateway_values, "kind", "aws")
+          subnet             = lookup(nat_gateway_values, "subnet", null)
+          nat_parameters     = lookup(nat_gateway_values, "nat_parameters", { connectivity_type = "public" })
+          tags               = merge(local.common_tags, { Name = "${local.custom_common_name[vpc_key]}-${nat_gateway_name}" }, try(nat_gateway_values.tags, {}))
+        }
+      } if((length(lookup(vpc_config, "nat_gateway", {})) > 0))
+    ]
+  ]
+  create_nat_gateway = merge(flatten(local.create_nat_gateway_tmp)...)
+}
+module "nat_gateway" {
+  source = "./modules/aws/terraform-aws-nat-gateway"
+
+  for_each = local.create_nat_gateway
+
+  create_nat_gateway = each.value.create_nat_gateway
+  kind               = each.value.kind
+  vpc_id             = module.vpc[each.value.vpc_key].vpc_id
+  subnet_id          = module.subnet["${each.value.vpc_key}-${each.value.subnet}"].id
+  nat_parameters     = each.value.nat_parameters
+
+  tags = each.value.tags
+}
+
+locals {
+  create_default_route_tmp = [
+    for vpc_key, vpc_config in var.vpc_parameters :
+    [
+      for route_table_name, route_table_values in try(vpc_config.route_table, {}) :
+      {
+        "${vpc_key}-${route_table_name}" = {
+          create = true
+
+          destination_cidr_block = "0.0.0.0/0"
+          # destination_ipv6_cidr_block = try(route_table_values.default_route.destination_ipv6_cidr_block, null) == null && can(route_table_values.default_route.destination_cidr_block) ? null : "::/0"
+
+          # destination_prefix_list_id = try(route_table_values.default_route.vpc_endpoint_id, null)
+
+          nat_gateway_id = try(module.nat_gateway["${vpc_key}-${route_table_values.default_route.nat_gateway}"].aws_nat_gateway_id, route_table_values.default_route.nat_gateway_id, null)
+
+          gateway_id = try(module.internet_gateway["${vpc_key}-${route_table_values.default_route.gateway}"].id, route_table_values.default_route.gateway_id, null)
+
+          network_interface_id = try(module.nat_gateway["${vpc_key}-${route_table_values.default_route.network_interface}"].ec2_nat_gateway_id, route_table_values.default_route.network_interface_id, null)
+
+          egress_only_gateway_id = try(module.internet_gateway["${vpc_key}-${route_table_values.route_values.egress_only_gateway}"].egress_only_id, route_table_values.route_values.egress_only_gateway_id, null)
+
+          vpc_endpoint_id = try(route_table_values.default_route.vpc_endpoint_id, null)
+          #try(module.vpc_endpoint["${vpc_key}-${route_table_values.default_route.vpc_endpoint}"].endpoint_id, route_table_values.default_route.vpc_endpoint_id, null)
+
+          transit_gateway_id = try(route_table_values.default_route.transit_gateway_id, null)
+          #try(module.transit-gateway["${vpc_key}-${route_table_values.default_route.transit_gateway}"].transit-gateway-id, route_table_values.default_route.transit_gateway_id, null)
+
+          vpc_peering_connection_id = try(route_table_values.default_route.vpc_peering_connection_id, null)
+          #try( module.vpc-peering["${vpc_key}-${route_table_values.default_route.vpc_peering_connection}"].peering_id, route_table_values.default_route.vpc_peering_connection_id, null)
+
+          core_network_arn = try(route_table_values.default_route.core_network_arn, null)
+          #try(module.nat_gateway["${vpc_key}-${route_table_values.default_route.core_network}"].core_id, route_table_values.default_route.core_network_arn, null)
+
+          carrier_gateway_id = try(route_table_values.default_route.carrier_gateway_id, null)
+          #try( module.nat_gateway["${vpc_key}-${route_table_values.default_route.carrier_gateway}"].ec2_nat_gateway_id, route_table_values.default_route.carrier_gateway_id, null)
+
+          local_gateway_id = try(route_table_values.default_route.local_gateway_id, null)
+          #try(module.nat_gateway["${vpc_key}-${route_table_values.default_route.local_gateway}"].ec2_nat_gateway_id, route_table_values.default_route.local_gateway_id, null)
+
+          tags = merge(local.common_tags, { Name = "${local.custom_common_name[vpc_key]}-${route_table_name}" }, try(route_table_values.tags, {}))
+        }
+      } if((length(lookup(route_table_values, "default_route", {})) > 0))
+    ]
+  ]
+  create_default_route = merge(flatten(local.create_default_route_tmp)...)
+
+  create_route_tmp = [
+    for vpc_key, vpc_config in var.vpc_parameters :
+    [
+      for route_table_name, route_table_values in try(vpc_config.route_table, {}) :
+      {
+        "${vpc_key}-${route_table_name}" = {
+          for route_name, route_values in try(route_table_values.routes, {}) :
+          "${route_name}" => {
+
+            destination_cidr_block      = try(route_values.destination_cidr_block, null)
+            destination_ipv6_cidr_block = try(route_values.destination_ipv6_cidr_block, null)
+
+            #destination_prefix_list_id  = try(module.prefix-list["${vpc_key}-${route_table_values.route_values.destination_prefix_list}"].aws_destination_prefix_list_id, route_table_values.route_values.destination_prefix_list_id, null)
+
+            nat_gateway_id = try(module.nat_gateway["${vpc_key}-${route_table_values.route_values.nat_gateway}"].aws_nat_gateway_id, route_table_values.route_values.nat_gateway_id, null)
+
+            gateway_id = try(module.internet_gateway["${vpc_key}-${route_table_values.route_values.gateway}"].id, route_table_values.route_values.gateway_id, null)
+
+            network_interface_id = try(module.nat_gateway["${vpc_key}-${route_table_values.route_values.network_interface}"].ec2_nat_gateway_id, route_table_values.route_values.network_interface_id, null)
+
+            egress_only_gateway_id = try(module.internet_gateway["${vpc_key}-${route_table_values.route_values.egress_only_gateway}"].egress_only_id, route_table_values.route_values.egress_only_gateway_id, null)
+
+            vpc_endpoint_id = try(route_table_values.route_values.vpc_endpoint_id, null)
+            #try(module.vpc_endpoint["${vpc_key}-${route_table_values.route_values.vpc_endpoint}"].endpoint_id, route_table_values.route_values.vpc_end   point_id, null)   
+
+            transit_gateway_id = try(route_table_values.route_values.transit_gateway_id, null)
+            #try(module.transit-gateway["${vpc_key}-${route_table_values.route_values.transit_gateway}"].transit-gateway-id, route_table_values.default_   route.transit_gateway_id, null)   
+
+            vpc_peering_connection_id = try(route_table_values.route_values.vpc_peering_connection_id, null)
+            #try( module.vpc-peering["${vpc_key}-${route_table_values.route_values.vpc_peering_connection}"].peering_id, route_table_values.default_rout   e.vpc_peering_connection_id, null)  
+
+            core_network_arn = try(route_table_values.route_values.core_network_arn, null)
+            #try(module.nat_gateway["${vpc_key}-${route_table_values.route_values.core_network}"].core_id, route_table_values.route_values.core_network   _arn, null)   
+
+            carrier_gateway_id = try(route_table_values.route_values.carrier_gateway_id, null)
+            #try( module.nat_gateway["${vpc_key}-${route_table_values.route_values.carrier_gateway}"].ec2_nat_gateway_id, route_table_values.default_rou   te.carrier_gateway_id, null)  
+
+            local_gateway_id = try(route_table_values.route_values.local_gateway_id, null)
+            #try(module.nat_gateway["${vpc_key}-${route_table_values.route_values.local_gateway}"].ec2_nat_gateway_id, route_table_values.route_values.local_gateway_id, null)
+
+            tags = merge(local.common_tags, { Name = "${local.custom_common_name[vpc_key]}-${route_table_name}" }, try(route_values.tags, {}))
+          }
+        }
+      }
+    ]
+  ]
+  create_route = merge(flatten(local.create_route_tmp)...)
+
+}
+module "route_association" {
+
+  source = "./modules/aws/terraform-aws-route-association"
+
+  for_each = local.create_route_table
+
+  route_table_id       = module.route_table[each.key].id
+  create_default_route = each.value.create_default_route
+  routes               = try(local.create_route[each.key], {})
+  default_route        = try(local.create_default_route[each.key], { create = false })
+
+  tags = each.value.tags
+
+}
+
+# Flow Logs
+locals {
+  create_flow_logs_tmp = [
+    for vpc_key, vpc_config in var.vpc_parameters :
+    [
+      for flow_logs_name, flow_logs_values in try(vpc_config.flow_logs, {}) :
+      {
+        "${vpc_key}-${flow_logs_name}" = {
+          enable_flow_log                                 = lookup(flow_logs_values, "enable_flow_log", false)
+          create_flow_log_cloudwatch_iam_role             = lookup(flow_logs_values, "create_flow_log_cloudwatch_iam_role", true)
+          create_flow_log_cloudwatch_log_group            = lookup(flow_logs_values, "create_flow_log_cloudwatch_log_group", true)
+          vpc_flow_log_permissions_boundary               = lookup(flow_logs_values, "vpc_flow_log_permissions_boundary", null)
+          flow_log_traffic_type                           = lookup(flow_logs_values, "flow_log_traffic_type", "ALL")
+          flow_log_destination_type                       = lookup(flow_logs_values, "flow_log_destination_type", "cloud-watch-logs")
+          flow_log_log_format                             = lookup(flow_logs_values, "flow_log_log_format", null)
+          flow_log_destination_arn                        = lookup(flow_logs_values, "flow_log_destination_arn", false)
+          flow_log_cloudwatch_iam_role_arn                = lookup(flow_logs_values, "flow_log_cloudwatch_iam_role_arn", false)
+          flow_log_cloudwatch_log_group_name_prefix       = lookup(flow_logs_values, "flow_log_cloudwatch_log_group_name_prefix", false)
+          flow_log_cloudwatch_log_group_retention_in_days = lookup(flow_logs_values, "flow_log_cloudwatch_log_group_retention_in_days", 365)
+          flow_log_cloudwatch_log_group_kms_key_id        = lookup(flow_logs_values, "flow_log_cloudwatch_log_group_kms_key_id", null)
+          flow_log_max_aggregation_interval               = lookup(flow_logs_values, "flow_log_max_aggregation_interval", 600)
+          flow_log_hive_compatible_partitions             = lookup(flow_logs_values, "flow_log_hive_compatible_partitions", false)
+          flow_log_per_hour_partition                     = lookup(flow_logs_values, "flow_log_per_hour_partition", false)
+          vpc_id                                          = module.vpc[vpc_key].vpc_id
+          tags                                            = merge(local.common_tags, { Name = "${local.custom_common_name[vpc_key]}-${flow_logs_name}" }, try(flow_logs_values.tags, {}))
+        }
+      } if((length(lookup(vpc_config, "flow_logs", {})) > 0))
+    ]
+  ]
+  create_flow_logs = merge(flatten(local.create_flow_logs_tmp)...)
+}
+module "flow_logs" {
+
+  source = "./modules/aws/terraform-aws-flow-logs"
+
+  for_each = local.create_flow_logs
+
+  enable_flow_log                                 = each.value.enable_flow_log
+  create_flow_log_cloudwatch_iam_role             = each.value.create_flow_log_cloudwatch_iam_role
+  create_flow_log_cloudwatch_log_group            = each.value.create_flow_log_cloudwatch_log_group
+  vpc_flow_log_permissions_boundary               = each.value.vpc_flow_log_permissions_boundary
+  flow_log_traffic_type                           = each.value.flow_log_traffic_type
+  flow_log_destination_type                       = each.value.flow_log_destination_type
+  flow_log_log_format                             = each.value.flow_log_log_format
+  flow_log_destination_arn                        = each.value.flow_log_destination_arn
+  flow_log_cloudwatch_log_group_name_prefix       = each.value.flow_log_cloudwatch_log_group_name_prefix
+  flow_log_cloudwatch_log_group_retention_in_days = each.value.flow_log_cloudwatch_log_group_retention_in_days
+  flow_log_cloudwatch_log_group_kms_key_id        = each.value.flow_log_cloudwatch_log_group_kms_key_id
+  flow_log_max_aggregation_interval               = each.value.flow_log_max_aggregation_interval
+  flow_log_hive_compatible_partitions             = each.value.flow_log_hive_compatible_partitions
+  flow_log_per_hour_partition                     = each.value.flow_log_per_hour_partition
+  vpc_id                                          = each.value.vpc_id
+
+  tags = each.value.tags
+
+}
+
+locals {
+  create_endpoints_tmp = [
+    for vpc_key, vpc_config in var.vpc_parameters :
+    {
+      "${vpc_key}" = {
+        for endpoint_name, endpoint_values in try(vpc_config.endpoints, {}) :
+        "${endpoint_name}" => {
+          service      = try(endpoint_values.service, null)
+          service_name = try(endpoint_values.service_name, null)
+          service_type = try(endpoint_values.service_type, null)
+          route_table_ids = flatten([
+            for key in keys(local.create_route_table) : module.route_table[key].id
+            if length(regexall("${vpc_key}", key)) > 0
+          ])
+          policy              = try(endpoint_values.policy, null)
+          private_dns_enabled = try(endpoint_values.private_dns_enabled, false)
+          security_group_ids  = try(endpoint_values.security_group_ids, [])
+
+          tags = merge(local.common_tags, { Name = "${local.custom_common_name[vpc_key]}-${endpoint_values.service}-vpc-endpoint" }, try(endpoint_values.tags, {}))
+        }
+      }
+    }
+  ]
+  create_endpoints = merge(flatten(local.create_endpoints_tmp)...)
+}
+
+module "vpc_endpoint" {
+  source = "./modules/aws/terraform-aws-vpc-endpoints"
+
+  for_each = var.vpc_parameters
+
+  vpc_id    = module.vpc[each.key].vpc_id
+  endpoints = local.create_endpoints[each.key]
+
 }

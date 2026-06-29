@@ -1,21 +1,26 @@
-# Complete Example 🚀
+# Complete VPC Example 🚀
 
-This example demonstrates a comprehensive Terraform configuration for setting up a VPC with multiple subnets and security group rules.
+This example demonstrates three VPC deployment patterns in a single stack: a full-featured production-style VPC (prod), a minimal EC2 NAT setup (simple), and subnet extension into an existing VPC (vpc-existing). Together they cover AWS and EC2 NAT gateways, dedicated NACLs, VPC Flow Logs, multi-tier subnets, Gateway endpoints, and import-by-ID workflows.
 
 ## 🔧 What's Included
 
 ### Analysis of Terraform Configuration
 
 #### Main Purpose
-The main purpose is to configure a VPC with private, public, database, and ElastiCache subnets along with associated security group rules.
+The main purpose is to showcase major wrapper options across multiple realistic scenarios: prod exposes every optional block with commented settings (DHCP, IPv6, IPAM, custom routes, AWS managed NAT); simple shows a lean four-tier layout with EC2 NAT and default NACLs; vpc-existing shows how to add subnets to a VPC that already exists using vpc_id, route_table_id, and network_acl_id.
 
 #### Key Features Demonstrated
-- **Private Subnets**: Configures three private subnets within the VPC.
-- **Public Subnets**: Configures three public subnets within the VPC.
-- **Database Subnets**: Configures three database subnets within the VPC.
-- **Elasticache Subnets**: Configures three ElastiCache subnets within the VPC.
-- **Security Group Rules**: Sets default ingress and egress rules for the security group.
-- **Nat Gateway Configuration**: Disables NAT gateway but enables EC2 NAT gateway with EIP attachment.
+- **prod — Full VPC**: Single VPC with /16 CIDR (10.15.0.0/16), optional custom_common_name, and commented placeholders for IPAM, IPv6, DHCP, DNS, and tenancy.
+- **prod — VPC Flow Logs**: Flow log block with enable_flow_log and commented placeholders for CloudWatch IAM role, log group, destination, retention, and log format.
+- **prod — Internet Gateway**: One Internet Gateway (igw) for public subnets.
+- **prod — AWS Managed NAT Gateway**: Managed NAT Gateway (kind = "aws") in a public subnet; commented example of EC2 NAT (kind = "ec2") with EIP attachment and security group rules.
+- **prod — Route Tables**: Private route table (default route via NAT gateway) and public route table (default route via IGW), with optional custom routes (peering, TGW, VPC endpoints, etc.).
+- **prod — Dedicated Network ACLs**: Separate NACLs for private and public subnets with configurable ingress/egress rules.
+- **prod — Multi-Tier Subnets**: Private, public, database, and ElastiCache subnets in three AZs, each associated with route tables and NACLs.
+- **prod — Gateway VPC Endpoints**: S3 and DynamoDB Gateway endpoints with resource-based policies attached to private and public route tables.
+- **simple — Minimal VPC**: Second VPC entry with EC2 NAT (kind = "ec2", ec2_nat_gateway_attach_eip = true), empty network_acl map (default VPC NACLs), map_public_ip_on_launch on public subnets, and private default route via network_interface.
+- **simple — Same Tier Layout**: Four subnet tiers (private, public, db, elasticache) across three AZs with Gateway endpoints for S3 and DynamoDB.
+- **vpc-existing — Import Pattern**: Third VPC entry referencing an existing vpc_id with create_vpc = false; new subnets use route_table_id and network_acl_id instead of wrapper-managed route tables and NACLs.
 
 ## 🚀 Quick Start
 

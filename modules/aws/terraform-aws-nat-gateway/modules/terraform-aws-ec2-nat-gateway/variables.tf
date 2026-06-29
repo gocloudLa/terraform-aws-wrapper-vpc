@@ -61,3 +61,9 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "ingress_with_cidr_blocks" {
+  description = "CIDR blocks allowed to reach the EC2 NAT instance on defined ports."
+  type        = list(map(string))
+  default     = null
+}
