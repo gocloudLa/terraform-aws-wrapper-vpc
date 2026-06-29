@@ -1,23 +1,26 @@
 # Complete VPC Example 🚀
 
-This example demonstrates a full-featured VPC setup with AWS managed NAT Gateway, dedicated network ACLs for private and public subnets, VPC Flow Logs configuration, multi-tier subnets (private, public, database, ElastiCache), and Gateway VPC endpoints for S3 and DynamoDB with resource-based policies.
+This example demonstrates three VPC deployment patterns in a single stack: a full-featured production-style VPC (prod), a minimal EC2 NAT setup (simple), and subnet extension into an existing VPC (vpc-existing). Together they cover AWS and EC2 NAT gateways, dedicated NACLs, VPC Flow Logs, multi-tier subnets, Gateway endpoints, and import-by-ID workflows.
 
 ## 🔧 What's Included
 
 ### Analysis of Terraform Configuration
 
 #### Main Purpose
-The main purpose is to showcase all major wrapper options in one place: flow logs, dedicated NACLs, AWS managed NAT, multiple route tables, four subnet tiers across three AZs, and Gateway endpoints, with commented examples of optional settings (DHCP, IPv6, IPAM, custom routes).
+The main purpose is to showcase major wrapper options across multiple realistic scenarios: prod exposes every optional block with commented settings (DHCP, IPv6, IPAM, custom routes, AWS managed NAT); simple shows a lean four-tier layout with EC2 NAT and default NACLs; vpc-existing shows how to add subnets to a VPC that already exists using vpc_id, route_table_id, and network_acl_id.
 
 #### Key Features Demonstrated
-- **VPC and CIDR**: Single VPC (prod) with /16 CIDR (10.15.0.0/16) and optional custom_common_name; structure shown for IPAM, IPv6, and DHCP options.
-- **VPC Flow Logs**: Flow log block with enable_flow_log and placeholders for CloudWatch IAM role, log group, destination, and retention.
-- **Internet Gateway**: One Internet Gateway (igw) for public subnets.
-- **AWS Managed NAT Gateway**: Managed NAT Gateway (kind = "aws") in a public subnet for private subnet egress.
-- **Route Tables**: Private route table (default route via NAT gateway) and public route table (default route via IGW), with optional custom routes structure.
-- **Dedicated Network ACLs**: Separate NACLs for private and public subnets with configurable rules.
-- **Multi-Tier Subnets**: Private, public, database, and ElastiCache subnets in three AZs, each associated with route tables and NACLs.
-- **Gateway VPC Endpoints**: S3 and DynamoDB Gateway endpoints with resource-based policies for private access.
+- **prod — Full VPC**: Single VPC with /16 CIDR (10.15.0.0/16), optional custom_common_name, and commented placeholders for IPAM, IPv6, DHCP, DNS, and tenancy.
+- **prod — VPC Flow Logs**: Flow log block with enable_flow_log and commented placeholders for CloudWatch IAM role, log group, destination, retention, and log format.
+- **prod — Internet Gateway**: One Internet Gateway (igw) for public subnets.
+- **prod — AWS Managed NAT Gateway**: Managed NAT Gateway (kind = "aws") in a public subnet; commented example of EC2 NAT (kind = "ec2") with EIP attachment and security group rules.
+- **prod — Route Tables**: Private route table (default route via NAT gateway) and public route table (default route via IGW), with optional custom routes (peering, TGW, VPC endpoints, etc.).
+- **prod — Dedicated Network ACLs**: Separate NACLs for private and public subnets with configurable ingress/egress rules.
+- **prod — Multi-Tier Subnets**: Private, public, database, and ElastiCache subnets in three AZs, each associated with route tables and NACLs.
+- **prod — Gateway VPC Endpoints**: S3 and DynamoDB Gateway endpoints with resource-based policies attached to private and public route tables.
+- **simple — Minimal VPC**: Second VPC entry with EC2 NAT (kind = "ec2", ec2_nat_gateway_attach_eip = true), empty network_acl map (default VPC NACLs), map_public_ip_on_launch on public subnets, and private default route via network_interface.
+- **simple — Same Tier Layout**: Four subnet tiers (private, public, db, elasticache) across three AZs with Gateway endpoints for S3 and DynamoDB.
+- **vpc-existing — Import Pattern**: Third VPC entry referencing an existing vpc_id with create_vpc = false; new subnets use route_table_id and network_acl_id instead of wrapper-managed route tables and NACLs.
 
 ## 🚀 Quick Start
 
