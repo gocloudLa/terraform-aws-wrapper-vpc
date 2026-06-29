@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.0.0](https://github.com/gocloudLa/terraform-aws-wrapper-vpc/compare/v1.2.1...v2.0.0) (2026-06-29)
+
+
+### ⚠ BREAKING CHANGES
+
+* **module:** full module refator ([#19](https://github.com/gocloudLa/terraform-aws-wrapper-vpc/issues/19))
+
+### Features
+
+* **module:** full module refator ([#19](https://github.com/gocloudLa/terraform-aws-wrapper-vpc/issues/19)) ([a3fa768](https://github.com/gocloudLa/terraform-aws-wrapper-vpc/commit/a3fa76829259fd67c73d8aef8a1136475de32a1e))
+
 ## [1.2.1](https://github.com/gocloudLa/terraform-aws-wrapper-vpc/compare/v1.2.0...v1.2.1) (2026-02-27)
 
 
