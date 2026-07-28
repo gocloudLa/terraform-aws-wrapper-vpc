@@ -473,6 +473,7 @@ vpc_parameters = {
 | Name                                 | Description                                                                                                      | Type           | Default     | Required |
 | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------- | -------------- | ----------- | -------- |
 | vpc_cidr                             | CIDR block for the VPC.                                                                                          | `string`       | `""`        | yes      |
+| secondary_cidr_blocks                | Secondary CIDR block for the VPC.                                                                                | `string`       | `""`        | yes      |
 | custom_common_name                   | Override the computed common name for this VPC entry.                                                            | `string`       | `""`        | no       |
 | use_ipam_pool                        | Allocate CIDR from an IPAM pool instead of `vpc_cidr`.                                                           | `bool`         | `false`     | no       |
 | ipv4_ipam_pool_id                    | IPAM IPv4 pool ID when `use_ipam_pool = true`.                                                                   | `string`       | `null`      | no       |
