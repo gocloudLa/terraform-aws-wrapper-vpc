@@ -7,6 +7,7 @@ module "wrapper_vpc" {
     "prod" = {
       # VPC Parameters
       vpc_cidr           = local.vpc_cidr #Required
+      # secondary_cidr_blocks = [local.secondary_cidr_blocks] #Optional
       custom_common_name = ""
 
       ## Default tenancy delegates the decistion of the tenancy type on the ec2 resource creation.
