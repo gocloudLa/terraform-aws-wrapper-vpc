@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.0](https://github.com/gocloudLa/terraform-aws-wrapper-vpc/compare/v2.0.0...v2.1.0) (2026-07-29)
+
+
+### Features
+
+* **module:** add seconday cidr variable ([#23](https://github.com/gocloudLa/terraform-aws-wrapper-vpc/issues/23)) ([524452a](https://github.com/gocloudLa/terraform-aws-wrapper-vpc/commit/524452a2d0534f52c0870a20fbc560ec42bf8d2e))
+
 ## [2.0.0](https://github.com/gocloudLa/terraform-aws-wrapper-vpc/compare/v1.2.1...v2.0.0) (2026-06-29)
 
 
