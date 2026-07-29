@@ -8,6 +8,7 @@ module "vpc" {
   ## VPC Definition
   create_vpc                           = lookup(each.value, "create_vpc", true)
   cidr_block                           = lookup(each.value, "vpc_cidr", "") ## it does not match example value
+  secondary_cidr_blocks                = lookup(each.value, "secondary_cidr_blocks", [])
   use_ipam_pool                        = lookup(each.value, "use_ipam_pool", false)
   ipv4_ipam_pool_id                    = lookup(each.value, "ipv4_ipam_pool_id", null)
   ipv4_netmask_length                  = lookup(each.value, "ipv4_netmask_length", null)
